@@ -131,7 +131,7 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .sum-goal input:disabled { color: #888; border-color: #333; background: #222; opacity: 1; -webkit-text-fill-color: #888;}
 
 .col-header { color: #888; font-size: 0.7em; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;}
-.ehp-row { color: #00ffff !important; }
+.ehp-row, .balance-row { color: #00ffff !important; }
 
 .override-btn { background:#444; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.75em; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.2s; }
 .override-btn.active { background:var(--gold); color:#000; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);}

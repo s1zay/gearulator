@@ -1165,6 +1165,37 @@ function updateSummary() {
         rows.push({ k: 'ehp', l: 'eHP:', v: { math: `vs ${ignoreDef * 100}% Enemy Ignore`, total: ehpTotal.toLocaleString() } });
     }
 
+    // === NEW: NUKER DAMAGE BALANCE (1:1 GOLDEN RATIO) ===
+    if (['ATK Nuker', 'DEF Nuker', 'HP Nuker'].includes(utilMode) && bData) {
+        let statKey = utilMode.split(' ')[0].toLowerCase(); // Grabs 'atk', 'def', or 'hp'
+        
+        let curStatMode = mode === 'avg' ? Math.round((t[statKey][0]+t[statKey][1])/2) : (mode === 'high' ? t[statKey][1] : t[statKey][0]);
+        let curStatPMode = mode === 'avg' ? Math.round((t[statKey+'P'][0]+t[statKey+'P'][1])/2) : (mode === 'high' ? t[statKey+'P'][1] : t[statKey+'P'][0]);
+        let curCdMode = mode === 'avg' ? Math.round((t.cd[0]+t.cd[1])/2) : (mode === 'high' ? t.cd[1] : t.cd[0]);
+
+        let baseStat = bData[statKey];
+        let totalCd = bData.cd + curCdMode; 
+        let totalStat = Math.round(baseStat + (baseStat * (curStatPMode/100)) + curStatMode);
+
+        let statRatio = (totalStat - baseStat) / baseStat;
+        let cdRatio = totalCd / 100;
+
+        let totalStr = "";
+        
+        // Give a tiny 2% buffer so it doesn't yell about being off by tiny fractions
+        if (statRatio > cdRatio + 0.02) {
+            let targetCd = Math.round(statRatio * 100);
+            totalStr = `Add ${targetCd - totalCd}% C. DMG`;
+        } else if (cdRatio > statRatio + 0.02) {
+            let targetStat = Math.round(baseStat * (1 + cdRatio));
+            totalStr = `Add ${targetStat - totalStat} ${statKey.toUpperCase()}`;
+        } else {
+            totalStr = "Perfectly Balanced";
+        }
+
+        rows.push({ k: 'balance', l: 'DMG BAL:', v: { math: '1:1 Golden Ratio', total: totalStr } });
+    }
+
     let html = `
         <div class="col-header" style="text-align: right;">Breakdown</div>
         <div class="col-header" style="text-align: right; padding-right:10px;">Stat</div>
@@ -1174,8 +1205,8 @@ function updateSummary() {
     
     rows.forEach(r => { 
         let gVal = userGoals[r.k] !== undefined ? userGoals[r.k] : '';
-        let extraClass = r.k === 'ehp' ? 'ehp-row' : '';
-        let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' ? '' : 'disabled';
+        let extraClass = r.k === 'ehp' ? 'ehp-row' : (r.k === 'balance' ? 'balance-row' : '');
+        let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
         html += `<div class="sum-ranges ${extraClass}">${r.v.math}</div>
                  <div class="sum-label ${extraClass}">${r.l}</div>
