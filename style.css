@@ -84,7 +84,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .gear-card:not(.expanded) .stat-toggle input { display: none; }
 .gear-card:not(.expanded) .sub-val { text-align: center; font-size: 0.8em; letter-spacing: -0.5px; }
 .gear-card:not(.expanded) .sub-label { font-size: 0.9em; letter-spacing: -0.2px; }
-.gear-card:not(.expanded) .glyph-val { display: none; }
 
 .gear-card.expanded .sub-row { flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 8px; }
 .gear-card.expanded .sub-val { text-align: right; flex-grow: 1; padding-right: 10px; }

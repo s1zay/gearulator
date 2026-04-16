@@ -69,10 +69,11 @@ const presetGoalsConfig = {
 };
 
 const glyphDict = {
-    uncommon: { hp: 750, hpP: 8, atk: 40, atkP: 8, def: 40, defP: 8, spd: 8, acc: 16, res: 16 },
-    rare: { hp: 850, hpP: 9, atk: 45, atkP: 9, def: 45, defP: 9, spd: 9, acc: 18, res: 18 },
-    epic: { hp: 950, hpP: 10, atk: 50, atkP: 10, def: 50, defP: 10, spd: 10, acc: 20, res: 20 },
-    legendary: { hp: 1150, hpP: 12, atk: 60, atkP: 12, def: 60, defP: 12, spd: 12, acc: 24, res: 24 }
+    green5: { hp: 475, hpP: 5, atk: 30, atkP: 5, def: 30, defP: 5, spd: 5, acc: 12, res: 12 },
+    green6: { hp: 750, hpP: 8, atk: 40, atkP: 8, def: 40, defP: 8, spd: 8, acc: 16, res: 16 },
+    blue6: { hp: 850, hpP: 9, atk: 45, atkP: 9, def: 45, defP: 9, spd: 9, acc: 18, res: 18 },
+    purple6: { hp: 950, hpP: 10, atk: 50, atkP: 10, def: 50, defP: 10, spd: 10, acc: 20, res: 20 },
+    gold6: { hp: 1150, hpP: 12, atk: 60, atkP: 12, def: 60, defP: 12, spd: 12, acc: 24, res: 24 }
 };
 
 const setDB = {
@@ -427,8 +428,7 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     if(document.getElementById('m_elixir').checked) { t.hp[0]+=3000; t.hp[1]+=3000; }
     if(document.getElementById('m_eagle').checked) { t.acc[0]+=50; t.acc[1]+=50; }
 
-    const g5 = document.getElementById('glyph5Select').value;
-    const g6 = document.getElementById('glyph6Select').value;
+    const gActive = document.getElementById('glyphSelect').value;
 
     gCfg.forEach(p => {
         const rank = state.ranks[p.id];
@@ -440,8 +440,12 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
             if (sid === pStat) return;
             const hits = activeHits[p.id][sid];
             if (hits > 0) {
-                const gActive = rank === 5 ? g5 : g6;
-                let gVal = (gActive !== "0" && glyphDict[gActive][sid]) ? glyphDict[gActive][sid] : 0;
+                let gVal = 0;
+                if (gActive !== "0" && glyphDict[gActive][sid]) {
+                    if (rank === 6 || (rank === 5 && gActive === 'green5')) {
+                        gVal = glyphDict[gActive][sid];
+                    }
+                }
                 t[sid][0] += (hits * roll[sid][p.t][rank][0]) + gVal;
                 t[sid][1] += (hits * roll[sid][p.t][rank][1]) + gVal;
             }
@@ -885,9 +889,7 @@ function renderPiece(piece) {
     const container = document.getElementById('subs_' + piece);
     const isExp = document.getElementById('card_' + piece).classList.contains('expanded');
     
-    const g5 = document.getElementById('glyph5Select').value;
-    const g6 = document.getElementById('glyph6Select').value;
-    const gActive = rank === 5 ? g5 : g6;
+    const gActive = document.getElementById('glyphSelect').value;
 
     let html = '';
 
@@ -922,9 +924,11 @@ function renderPiece(piece) {
             let rInd = (!isExp && rCnt > 0) ? `<span class="roll-ind ${colorCls}">[${rCnt}]</span>` : '';
 
             let gStr = '';
-            if(isAct && gActive !== "0" && glyphDict[gActive][sid]) {
-                let gVal = glyphDict[gActive][sid];
-                gStr = `<span class="glyph-val">[+${gVal}]</span>`;
+            if (isAct && gActive !== "0" && glyphDict[gActive][sid]) {
+                if (rank === 6 || (rank === 5 && gActive === 'green5')) {
+                    let gVal = glyphDict[gActive][sid];
+                    gStr = `<span class="glyph-val">[+${gVal}]</span>`;
+                }
             }
 
             html += `
@@ -1004,8 +1008,7 @@ function updateSummary() {
     if(document.getElementById('m_elixir').checked) { t.hp[0]+=3000; t.hp[1]+=3000; }
     if(document.getElementById('m_eagle').checked) { t.acc[0]+=50; t.acc[1]+=50; }
 
-    const g5 = document.getElementById('glyph5Select').value;
-    const g6 = document.getElementById('glyph6Select').value;
+    const gActive = document.getElementById('glyphSelect').value;
 
     gCfg.forEach(p => {
         const rank = state.ranks[p.id];
@@ -1020,8 +1023,12 @@ function updateSummary() {
             if (hits > 0) {
                 let baseMin = hits * roll[sid][p.t][rank][0];
                 let baseMax = hits * roll[sid][p.t][rank][1];
-                const gActive = rank === 5 ? g5 : g6;
-                let gVal = (gActive !== "0" && glyphDict[gActive][sid]) ? glyphDict[gActive][sid] : 0;
+                let gVal = 0;
+                if (gActive !== "0" && glyphDict[gActive][sid]) {
+                    if (rank === 6 || (rank === 5 && gActive === 'green5')) {
+                        gVal = glyphDict[gActive][sid];
+                    }
+                }
                 t[sid][0] += baseMin + gVal;
                 t[sid][1] += baseMax + gVal;
             }

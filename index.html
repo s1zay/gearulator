@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Raid Gear Tool V1.70 - True Blessing Stats</title>
+    <title>Raid Gear Simulator</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -92,19 +92,14 @@
             </div>
             
             <div class="glyph-row">
-                <label>5★ Gear Glyph Application:
-                    <select id="glyph5Select" onchange="updateGlobal()">
+                <label>Max Faction Wars Glyphs:
+                    <select id="glyphSelect" onchange="updateGlobal()">
                         <option value="0">Off (No Glyphs)</option>
-                        <option value="uncommon">Max Uncommon (Green)</option>
-                    </select>
-                </label>
-                <label>6★ Gear Glyph Application:
-                    <select id="glyph6Select" onchange="updateGlobal()">
-                        <option value="0">Off (No Glyphs)</option>
-                        <option value="uncommon">Max Uncommon (Green)</option>
-                        <option value="rare">Max Rare (Blue)</option>
-                        <option value="epic">Max Epic (Purple)</option>
-                        <option value="legendary">Max Legendary (Gold)</option>
+                        <option value="green5">Max 5★ Basic (Green)</option>
+                        <option value="green6">Max 6★ Basic (Green)</option>
+                        <option value="blue6">Max 6★ Rare (Blue)</option>
+                        <option value="purple6">Max 6★ Epic (Purple)</option>
+                        <option value="gold6">Max 6★ Legendary (Gold)</option>
                     </select>
                 </label>
             </div>
