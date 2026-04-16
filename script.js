@@ -35,7 +35,6 @@ const pVal = { hp: { 5: { AR: 3480, AC: 2750 }, 6: { AR: 4080, AC: 3300 } }, hpP
 const gCfg = [ { id: 'WEA', n: 'WEAPON', t: 'AR', po: ['atk'] }, { id: 'HEL', n: 'HELMET', t: 'AR', po: ['hp'] }, { id: 'SHI', n: 'SHIELD', t: 'AR', po: ['def'] }, { id: 'GAU', n: 'GAUNTLETS', t: 'AR', po: ['cr', 'cd', 'hpP', 'defP', 'atkP'] }, { id: 'CHE', n: 'CHEST PIECE', t: 'AR', po: ['acc', 'res', 'hpP', 'defP', 'atkP'] }, { id: 'BOO', n: 'BOOTS', t: 'AR', po: ['spd', 'hpP', 'defP', 'atkP'] }, { id: 'RIN', n: 'RING', t: 'AC', po: ['hp', 'def', 'atk'] }, { id: 'AMU', n: 'AMULET', t: 'AC', po: ['cd', 'hp', 'def', 'atk'] }, { id: 'BAN', n: 'BANNER', t: 'AC', po: ['acc', 'res', 'hp', 'def', 'atk'] } ];
 const aSub = { 'WEA': ['hp', 'hpP', 'cr', 'cd', 'spd', 'acc', 'res', 'atkP'], 'HEL': ['hpP', 'def', 'defP', 'atk', 'atkP', 'cr', 'cd', 'spd', 'acc', 'res'], 'SHI': ['hp', 'hpP', 'defP', 'cr', 'cd', 'spd', 'acc', 'res'], 'GAU': ['hp', 'hpP', 'def', 'defP', 'atk', 'atkP', 'cr', 'cd', 'spd', 'acc', 'res'], 'CHE': ['hp', 'hpP', 'def', 'defP', 'atk', 'atkP', 'cr', 'cd', 'spd', 'acc', 'res'], 'BOO': ['hp', 'hpP', 'def', 'defP', 'atk', 'atkP', 'cr', 'cd', 'spd', 'acc', 'res'], 'RIN': ['hp', 'hpP', 'def', 'defP', 'atk', 'atkP'], 'AMU': ['hp', 'def', 'atk', 'cd', 'acc', 'res'], 'BAN': ['hp', 'hpP', 'def', 'defP', 'atk', 'atkP', 'spd', 'acc', 'res'] };
 
-// V1.80 Reworked perfume bounds for dynamic pre-mitigated dmg optimization
 const perfBounds = {
     'ATK Nuker': { min: { g: 30, s: 15, t: 18 }, max: { g: 65, s: 12, t: 6 } },
     'DEF Nuker': { min: { g: 30, s: 15, t: 18 }, max: { g: 65, s: 12, t: 6 } },
@@ -519,7 +518,6 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     return res;
 }
 
-// === V1.80 REWORKED SCORING ENGINE FOR PRE-MITIGATED DMG DYNAMIC OPTIMIZATION ===
 function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
     let totals = evaluateStats(hitsObj, currentPrimaries);
     let score = 0;
@@ -528,7 +526,6 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
     let penWeight = Math.max(0.01, (100 - pctRaw) / 100); 
     let rollPenalty = 0;
     
-    // Maintain standard roll complexity penalties (triples/quads) for Custom mode and Custom Utility
     Object.keys(hitsObj).forEach(p => {
         Object.values(hitsObj[p]).forEach(count => {
             if (count === 3) rollPenalty += 5000;       
@@ -549,7 +546,6 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         });
     }
     
-    // Standard survival/eHP scoring
     let ignoreDef = parseFloat(document.getElementById('ignoreDefSelect').value);
     let effDef = totals.def * (1 - ignoreDef);
     let mitigation = effDef / (effDef + 1200);
@@ -575,7 +571,6 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         score -= ehp;
         score += (rollPenalty * penWeight * 5);
     } 
-    // === V1.80: Dynamic pre-mitigated dmg logic is now the score ===
     else if (utility.includes('Nuker')) {
         if (!overrideGoalsActive || userGoals.spd === '') {
             if (totals.spd < 240) score += (240 - totals.spd) * 100000;
@@ -586,14 +581,8 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
             if (totals.cr > 110) score += (totals.cr - 110) * 100000;
         }
         let statKey = utility.split(' ')[0].toLowerCase();
-        
-        // Dynamic formula calculation: Total_Stat * (1 + (CD / 100))
         let dmgMultiplier = totals[statKey] * (1 + (totals.cd / 100));
-        
-        // We want to maximize damage, so minimizing the negative damage is the goal
         score -= dmgMultiplier;
-        
-        // Roll complexity penalties are ignored in Nuker mode to allow optimal ratios to shine
     } else if (utility === 'Custom') {
         score += (rollPenalty * penWeight);
     }
@@ -606,7 +595,6 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
     let currentPris = JSON.parse(JSON.stringify(initialPrimaries));
     let currentScore = getScore(currentHits, utility, currentPris);
     
-    // We allow primary mutations for Nukers too now to find optimal balance!
     let allowPrimaryMutation = (utility === 'Custom' || utility.includes('Nuker') || overrideGoalsActive);
     
     for (let i=0; i<1500; i++) {
@@ -615,12 +603,10 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
         let mutatedHits = JSON.parse(JSON.stringify(currentHits));
         let mutatedPris = JSON.parse(JSON.stringify(currentPris));
         
-        // V1.80 INCREASED Mutation Rate (15% -> 25%) to find balanced ratios faster
         if (allowPrimaryMutation && Math.random() < 0.25) {
             let mutablePieces = gCfg.filter(p => p.po.length > 1);
             let p = mutablePieces[Math.floor(Math.random() * mutablePieces.length)].id;
             
-            // Allow primary mutation even if it has hits,hill-climb will naturally resolve conflicting hits
             let validPrimaryOptions = gCfg.find(x => x.id === p).po.filter(opt => opt !== mutatedPris[p]);
             if (validPrimaryOptions.length > 0) {
                  mutatedPris[p] = validPrimaryOptions[Math.floor(Math.random() * validPrimaryOptions.length)];
@@ -635,7 +621,6 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
                 let lim = state.pieceLimits[p];
                 let mSing = lim - 3;
                 
-                // V1.80: Hill-climb logic will self-correct the conflicts between primary/sub stats
                 let candidatesB = activeStats.filter(s => s !== statA && mutatedHits[p][s] < mSing);
                 if (candidatesB.length > 0) {
                     let statB = candidatesB[Math.floor(Math.random() * candidatesB.length)];
@@ -693,8 +678,6 @@ function rollDice() {
     let bestPris = null;
     let bestScore = Infinity;
     
-    // === V1.80 INCREASED Generation Attempts (25 -> 50) and Valid Generations (25 -> 40)
-    // for significantly better dynamic optimization variance ===
     let maxAttempts = 50; 
     let validGensFound = 0;
     let maxValidGensToProcess = 40; 
@@ -712,8 +695,6 @@ function rollDice() {
 
             gCfg.forEach(p => {
                 let pId = p.id;
-                // V1.80: Temporarily ignore primary conflicts during base generation
-                // to increase valid pool size, hill-climb will fix it.
                 let pOptions = aSub[pId]; 
                 pOptions = pOptions.sort(() => Math.random() - 0.5);
                 let chosen = pOptions.slice(0, 4);
@@ -732,7 +713,6 @@ function rollDice() {
             }
         }
 
-        // V1.80: Fallback logic simplified to force base success even if goals are slightly off
         if (!baseSuccess) {
             g_used = 0; s_used = 0; t_used = 0;
             gCfg.forEach(p => {
@@ -817,14 +797,21 @@ function rollDice() {
 
         if (!rollFail) {
             validGensFound++;
-            // V1.80: Self-correct conflicting primary stats before optimizing
+            
+            // === THIS IS THE FIX THAT STOPPED THE INFINITE LOOP ===
             let refinedPris = JSON.parse(JSON.stringify(state.primaries));
             gCfg.forEach(p => {
                 if (p.po.length > 1) {
                     let mutablePiece = gCfg.find(x => x.id === p.id);
-                    // Ensure the optimized primaries don't have conflicting substats
-                    while(tempHits[p.id][refinedPris[p.id]] > 0) {
-                        refinedPris[p.id] = mutablePiece.po[Math.floor(Math.random() * mutablePiece.po.length)];
+                    // Safely filter for available options instead of wildly guessing in a while loop
+                    let validOptions = mutablePiece.po.filter(opt => tempHits[p.id][opt] === 0);
+                    
+                    if (validOptions.length > 0) {
+                        refinedPris[p.id] = validOptions[Math.floor(Math.random() * validOptions.length)];
+                    } else {
+                        // Failsafe: If RNG filled all possible primary slots (like on Boots), force one open
+                        refinedPris[p.id] = mutablePiece.po[0];
+                        tempHits[p.id][refinedPris[p.id]] = 0; 
                     }
                 }
             });
@@ -1194,9 +1181,8 @@ function updateSummary() {
         rows.push({ k: 'ehp', l: 'eHP:', v: { math: `vs ${ignoreDef * 100}% Enemy Ignore`, total: ehpTotal.toLocaleString() } });
     }
 
-    // === V1.80 UPDATED NUKER DAMAGE BALANCE UI ===
     if (['ATK Nuker', 'DEF Nuker', 'HP Nuker'].includes(utilMode) && bData) {
-        let statKey = utilMode.split(' ')[0].toLowerCase(); // Grabs 'atk', 'def', or 'hp'
+        let statKey = utilMode.split(' ')[0].toLowerCase(); 
         
         let curStatMode = mode === 'avg' ? Math.round((t[statKey][0]+t[statKey][1])/2) : (mode === 'high' ? t[statKey][1] : t[statKey][0]);
         let curStatPMode = mode === 'avg' ? Math.round((t[statKey+'P'][0]+t[statKey+'P'][1])/2) : (mode === 'high' ? t[statKey+'P'][1] : t[statKey+'P'][0]);
@@ -1211,7 +1197,6 @@ function updateSummary() {
 
         let totalStr = "";
         
-        // Give a tiny 2% buffer so it doesn't yell about being off by tiny fractions
         if (statRatio > cdRatio + 0.02) {
             let targetCd = Math.round(statRatio * 100);
             totalStr = `Add ${targetCd - totalCd}% C. DMG`;
@@ -1222,7 +1207,6 @@ function updateSummary() {
             totalStr = "Perfectly Balanced";
         }
 
-        // V1.80: UI Reworked to match eHP row. math is now empty, l is "DMG Balance:"
         rows.push({ k: 'balance', l: 'DMG Balance:', v: { math: '', total: totalStr } });
     }
 
