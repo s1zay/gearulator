@@ -8,70 +8,77 @@
 </head>
 <body>
 
-    <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
-        <div class="top-utility-wrap champ-select-wrap">
-            <label class="top-utility-label" style="text-align: center; font-size:0.75em;">Champion</label>
-            <select id="champSelect" class="top-utility champ-select" onchange="champChanged()">
-                <option value="deathknight" selected>Deathknight</option>
-                <option value="ninja">Ninja</option>
-                <option value="marius">Marius the Gallant</option>
-            </select>
-        </div>
+    <div class="top-dashboard">
         
-        <div style="display: flex; gap: 10px; width: 100%;">
-            <div class="top-utility-wrap" style="flex: 1;">
-                <label class="top-utility-label">Awakening</label>
-                <select id="awkSelect" class="top-utility" onchange="updateSummary()">
-                    <option value="0">0★ (None)</option>
-                    <option value="1">1★</option>
-                    <option value="2">2★</option>
-                    <option value="3">3★</option>
-                    <option value="4">4★</option>
-                    <option value="5">5★</option>
-                    <option value="6">6★</option>
-                </select>
+        <div class="left-col">
+            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+                <div class="top-utility-wrap champ-select-wrap">
+                    <label class="top-utility-label" style="text-align: center; font-size:0.75em;">Champion</label>
+                    <select id="champSelect" class="top-utility champ-select" onchange="champChanged()">
+                        <option value="deathknight" selected>Deathknight</option>
+                        <option value="ninja">Ninja</option>
+                        <option value="marius">Marius the Gallant</option>
+                    </select>
+                </div>
+                
+                <div style="display: flex; gap: 10px; width: 100%;">
+                    <div class="top-utility-wrap" style="flex: 1;">
+                        <label class="top-utility-label">Awakening</label>
+                        <select id="awkSelect" class="top-utility" onchange="updateSummary()">
+                            <option value="0">0★ (None)</option>
+                            <option value="1">1★</option>
+                            <option value="2">2★</option>
+                            <option value="3">3★</option>
+                            <option value="4">4★</option>
+                            <option value="5">5★</option>
+                            <option value="6">6★</option>
+                        </select>
+                    </div>
+                    <div class="top-utility-wrap" style="flex: 1;">
+                        <label class="top-utility-label">Utility</label>
+                        <select id="utilitySelect" class="top-utility" onchange="updateGlobal()">
+                            <option value="ATK Nuker">ATK Nuker</option>
+                            <option value="DEF Nuker">DEF Nuker</option>
+                            <option value="HP Nuker">HP Nuker</option>
+                            <option value="Tank">Tank</option>
+                            <option value="Support">Support</option>
+                            <option value="Custom">Custom</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="top-utility-wrap" style="flex: 1;">
-                <label class="top-utility-label">Utility</label>
-                <select id="utilitySelect" class="top-utility" onchange="updateGlobal()">
-                    <option value="ATK Nuker">ATK Nuker</option>
-                    <option value="DEF Nuker">DEF Nuker</option>
-                    <option value="HP Nuker">HP Nuker</option>
-                    <option value="Tank">Tank</option>
-                    <option value="Support">Support</option>
-                    <option value="Custom">Custom</option>
-                </select>
-            </div>
-        </div>
-    </div>
 
-    <div class="section-card" id="rngCard">
-        <div class="section-header" onclick="toggleSection('rngCard')">
-            <h2>RNG Simulator</h2>
-            <span class="toggle-arrow">▼</span>
-        </div>
-        <div class="section-content">
-            <div style="display: flex; gap: 10px; width: 100%;">
-                <button class="rng-btn" style="flex: 1;" onclick="rollDice()">🎲 Roll RNG</button>
-                <button class="rng-btn reset-btn" style="flex: 1;" onclick="resetSubstats()">🔄 Reset</button>
+            <div class="section-card" id="rngCard">
+                <div class="section-header" onclick="toggleSection('rngCard')">
+                    <h2>RNG Simulator</h2>
+                    <span class="toggle-arrow">▼</span>
+                </div>
+                <div class="section-content">
+                    <div style="display: flex; gap: 10px; width: 100%;">
+                        <button class="rng-btn" style="flex: 1;" onclick="rollDice()">🎲 Roll RNG</button>
+                        <button class="rng-btn reset-btn" style="flex: 1;" onclick="resetSubstats()">🔄 Reset</button>
+                    </div>
+                    <div class="setting-row" style="margin-top: 20px; margin-bottom: 5px;">
+                        <div class="setting-label"><span>Perfection Scale (0-100%)</span><span id="rarityLabel" style="color:var(--gold)">50%</span></div>
+                        <input type="range" id="budgetSlider" min="0" max="100" value="50" step="0.1" oninput="updateGlobal()">
+                    </div>
+                </div>
             </div>
-            <div class="setting-row" style="margin-top: 20px; margin-bottom: 5px;">
-                <div class="setting-label"><span>Perfection Scale (0-100%)</span><span id="rarityLabel" style="color:var(--gold)">50%</span></div>
-                <input type="range" id="budgetSlider" min="0" max="100" value="50" step="0.1" oninput="updateGlobal()">
+        </div>
+
+        <div class="right-col">
+            <div class="section-card" id="summaryCard">
+                <div class="section-header" style="cursor: default;">
+                    <h2>Build Summary</h2>
+                    <button id="overrideBtn" class="override-btn" onclick="toggleOverride(event)">Override Goals</button>
+                </div>
+                <div class="section-content summary-wrapper">
+                    <div class="summary-grid" id="summaryOutput"></div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="section-card" id="summaryCard">
-        <div class="section-header" style="cursor: default;">
-            <h2>Build Summary</h2>
-            <button id="overrideBtn" class="override-btn" onclick="toggleOverride(event)">Override Goals</button>
-        </div>
-        <div class="section-content summary-wrapper">
-            <div class="summary-grid" id="summaryOutput"></div>
-        </div>
     </div>
-
     <div class="gear-grid" id="mainGrid"></div>
 
     <div class="section-card collapsed" id="setupCard">
