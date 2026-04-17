@@ -52,7 +52,8 @@ const statGoals = {
     'Support':   { g: ['hpP','defP','spd','acc'], s: ['hp','def'] }
 };
 
-let state = { globalBudget: 72, pieceLimits: {}, ranks: {}, primaries: {}, hits: {} };
+// V2.0: Added rollValues to state for memory bank
+let state = { globalBudget: 72, pieceLimits: {}, ranks: {}, primaries: {}, hits: {}, rollValues: {} };
 let activeSets = [];
 let lastUtility = 'ATK Nuker';
 let userGoals = { hp: '', atk: '', def: '', spd: 250, cr: 100, cd: '', acc: '', res: '', ign: '' };
@@ -111,11 +112,27 @@ function initSystem() {
         let defaultP = (p.id === 'GAU') ? 'cd' : (p.id === 'BOO' ? 'spd' : p.po[0]);
         state.primaries[p.id] = defaultP;
         state.hits[p.id] = {};
-        aSub[p.id].forEach(s => state.hits[p.id][s] = 0);
+        state.rollValues[p.id] = {};
+        aSub[p.id].forEach(s => {
+            state.hits[p.id][s] = 0;
+            state.rollValues[p.id][s] = [];
+        });
     });
     buildHTMLGrid();
     champChanged(); 
     updateGlobal(); 
+}
+
+// Memory Bank specific roll generator
+function generateRollsFor(piece, stat, count) {
+    let arr = [];
+    let rnk = state.ranks[piece];
+    let tType = gCfg.find(p => p.id === piece).t;
+    let bounds = roll[stat][tType][rnk];
+    for(let i=0; i<count; i++) {
+        arr.push(Math.floor(Math.random() * (bounds[1] - bounds[0] + 1)) + bounds[0]);
+    }
+    return arr;
 }
 
 function champChanged() {
@@ -313,7 +330,10 @@ function setPieceRank(piece, rank) {
 }
 function changePrimary(piece, newPrimary) {
     state.primaries[piece] = newPrimary;
-    if (state.hits[piece][newPrimary] > 0) state.hits[piece][newPrimary] = 0; 
+    if (state.hits[piece][newPrimary] > 0) {
+        state.hits[piece][newPrimary] = 0; 
+        state.rollValues[piece][newPrimary] = [];
+    }
     renderPiece(piece); updateSummary();
 }
 
@@ -335,12 +355,19 @@ function enforceTrim(piece) {
     let activeKeys = Object.keys(state.hits[piece]).filter(k => state.hits[piece][k] > 0);
     
     if (activeKeys.length > mStat) {
-        activeKeys.slice(mStat).forEach(k => state.hits[piece][k] = 0);
+        activeKeys.slice(mStat).forEach(k => {
+            state.hits[piece][k] = 0;
+            state.rollValues[piece][k] = [];
+        });
         activeKeys = activeKeys.slice(0, mStat);
     }
     
     activeKeys.forEach(k => {
-        if (state.hits[piece][k] > mSing) state.hits[piece][k] = mSing;
+        if (state.hits[piece][k] > mSing) {
+            let overflow = state.hits[piece][k] - mSing;
+            state.hits[piece][k] = mSing;
+            for(let i=0; i<overflow; i++) state.rollValues[piece][k].pop();
+        }
     });
     
     let tot = Object.values(state.hits[piece]).reduce((a,b)=>a+b,0);
@@ -348,6 +375,7 @@ function enforceTrim(piece) {
         let highestKey = activeKeys.reduce((a,b) => state.hits[piece][a] > state.hits[piece][b] ? a : b);
         if (state.hits[piece][highestKey] > 1) {
             state.hits[piece][highestKey]--;
+            state.rollValues[piece][highestKey].pop();
             tot--;
         } else {
             break; 
@@ -381,7 +409,10 @@ function updateGlobal() {
             Object.keys(utilityPrimaries[utility]).forEach(piece => {
                 let newPri = utilityPrimaries[utility][piece];
                 state.primaries[piece] = newPri;
-                if (state.hits[piece][newPri] > 0) state.hits[piece][newPri] = 0; 
+                if (state.hits[piece][newPri] > 0) {
+                    state.hits[piece][newPri] = 0; 
+                    state.rollValues[piece][newPri] = [];
+                }
             });
             buildHTMLGrid();
         }
@@ -396,12 +427,17 @@ function updateGlobal() {
 
 function resetSubstats() {
     gCfg.forEach(p => {
-        Object.keys(state.hits[p.id]).forEach(k => state.hits[p.id][k] = 0);
+        Object.keys(state.hits[p.id]).forEach(k => {
+            state.hits[p.id][k] = 0;
+            state.rollValues[p.id][k] = [];
+        });
         renderPiece(p.id);
     });
     updateSummary();
 }
 
+// V2.0: evaluateStats is strictly the math engine for the Optimizer now.
+// It ALWAYS evaluates math using the true minimum and maximum values to find the absolute mathematically "best" average build.
 function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     let t = { hp: [0,0], hpP: [0,0], atk: [0,0], atkP: [0,0], def: [0,0], defP: [0,0], spd: [0,0], spdP: [0,0], cr: [0,0], cd: [0,0], acc: [0,0], res: [0,0], ign: [0,0] };
 
@@ -473,32 +509,38 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     let bDataRaw = champId ? baseStats[champId] : null;
     let awkLevel = parseInt(document.getElementById('awkSelect').value) || 0;
     
-    let bData = null;
-    if (bDataRaw) {
-        bData = { ...bDataRaw };
-        if (awkLevel > 0 && bData.rarity !== 'common' && bData.rarity !== 'uncommon') {
-            let aCfg = awkStats[bData.rarity];
-            if (aCfg) {
-                if (awkLevel >= 1) bData.hp += aCfg[1].hp;
-                if (awkLevel >= 2) bData.atk += aCfg[2].atk;
-                if (awkLevel >= 3) bData.def += aCfg[3].def;
-                if (awkLevel >= 4) { bData.hp += aCfg[4].hp; bData.cd += aCfg[4].cd; }
-                if (awkLevel >= 5) { bData.res += aCfg[5].res; bData.acc += aCfg[5].acc; }
-                if (awkLevel >= 6) bData.spd += aCfg[6].spd;
-            }
+    // V2.0 AWAKENING MATH FIX: Calculate Awakening as FLAT stats, do NOT attach to base scaling pool.
+    let awkHp = 0, awkAtk = 0, awkDef = 0, awkCd = 0, awkRes = 0, awkAcc = 0, awkSpd = 0;
+    if (bDataRaw && awkLevel > 0 && bDataRaw.rarity !== 'common' && bDataRaw.rarity !== 'uncommon') {
+        let aCfg = awkStats[bDataRaw.rarity];
+        if (aCfg) {
+            if (awkLevel >= 1) awkHp += aCfg[1].hp || 0;
+            if (awkLevel >= 2) awkAtk += aCfg[2].atk || 0;
+            if (awkLevel >= 3) awkDef += aCfg[3].def || 0;
+            if (awkLevel >= 4) { awkHp += aCfg[4].hp || 0; awkCd += aCfg[4].cd || 0; }
+            if (awkLevel >= 5) { awkRes += aCfg[5].res || 0; awkAcc += aCfg[5].acc || 0; }
+            if (awkLevel >= 6) awkSpd += aCfg[6].spd || 0;
         }
     }
+    
+    t.hp[0] += awkHp; t.hp[1] += awkHp; 
+    t.atk[0] += awkAtk; t.atk[1] += awkAtk; 
+    t.def[0] += awkDef; t.def[1] += awkDef; 
+    t.cd[0] += awkCd; t.cd[1] += awkCd; 
+    t.res[0] += awkRes; t.res[1] += awkRes; 
+    t.acc[0] += awkAcc; t.acc[1] += awkAcc; 
+    t.spd[0] += awkSpd; t.spd[1] += awkSpd;
 
-    let mode = document.getElementById('displayMode').value;
     let res = {};
 
+    // V2.0: evaluateStats strictly averages the result to give the Hill Climber a stable target.
     ['hp','atk','def','spd','cr','cd','acc','res'].forEach(k => {
-        let bVal = bData ? bData[k] : 0;
+        let bVal = bDataRaw ? bDataRaw[k] : 0;
         let p0 = t[k+'P'] ? t[k+'P'][0] : 0; let p1 = t[k+'P'] ? t[k+'P'][1] : 0;
         let f0 = t[k][0]; let f1 = t[k][1];
         let t0 = 0, t1 = 0;
         
-        if (bData) {
+        if (bDataRaw) {
             if (['hp','atk','def','spd'].includes(k)) {
                 t0 = Math.round(bVal + (bVal * (p0/100)) + f0);
                 t1 = Math.round(bVal + (bVal * (p1/100)) + f1);
@@ -509,10 +551,7 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
             t0 = f0; t1 = f1;
         }
 
-        if (mode === 'avg') res[k] = Math.round((t0+t1)/2);
-        else if (mode === 'low') res[k] = t0;
-        else if (mode === 'high') res[k] = t1;
-        else res[k] = Math.round((t0+t1)/2);
+        res[k] = Math.round((t0+t1)/2);
     });
 
     return res;
@@ -580,8 +619,23 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
             if (totals.cr < 100) score += (100 - totals.cr) * 100000;
             if (totals.cr > 110) score += (totals.cr - 110) * 100000;
         }
+        
         let statKey = utility.split(' ')[0].toLowerCase();
-        let dmgMultiplier = totals[statKey] * (1 + (totals.cd / 100));
+        let champId = document.getElementById('champSelect').value;
+        let baseStat = baseStats[champId][statKey]; 
+        let totalStat = totals[statKey];
+        let totalCd = totals.cd;
+        
+        // V2.0: The 10% Efficiency Threshold Penalty Engine
+        let statRatio = (totalStat - baseStat) / baseStat;
+        let cdRatio = totalCd / 100;
+        let variance = Math.abs(statRatio - cdRatio);
+        
+        if (variance > 0.10) {
+            score += variance * 1000000; // Trash the build if variance swings past 10%
+        }
+
+        let dmgMultiplier = totalStat * (1 + (totalCd / 100));
         score -= dmgMultiplier;
     } else if (utility === 'Custom') {
         score += (rollPenalty * penWeight);
@@ -798,18 +852,15 @@ function rollDice() {
         if (!rollFail) {
             validGensFound++;
             
-            // === THIS IS THE FIX THAT STOPPED THE INFINITE LOOP ===
             let refinedPris = JSON.parse(JSON.stringify(state.primaries));
             gCfg.forEach(p => {
                 if (p.po.length > 1) {
                     let mutablePiece = gCfg.find(x => x.id === p.id);
-                    // Safely filter for available options instead of wildly guessing in a while loop
                     let validOptions = mutablePiece.po.filter(opt => tempHits[p.id][opt] === 0);
                     
                     if (validOptions.length > 0) {
                         refinedPris[p.id] = validOptions[Math.floor(Math.random() * validOptions.length)];
                     } else {
-                        // Failsafe: If RNG filled all possible primary slots (like on Boots), force one open
                         refinedPris[p.id] = mutablePiece.po[0];
                         tempHits[p.id][refinedPris[p.id]] = 0; 
                     }
@@ -839,6 +890,14 @@ function rollDice() {
                 }
             });
         }
+        
+        // V2.0 MEMORY BANK: Lock in the random numbers for the newly generated build
+        gCfg.forEach(p => {
+            aSub[p.id].forEach(stat => {
+                state.rollValues[p.id][stat] = generateRollsFor(p.id, stat, state.hits[p.id][stat]);
+            });
+        });
+        
     } else {
         console.warn("RNG mathematically bottlenecked. Try lowering perfection scale.");
     }
@@ -853,9 +912,14 @@ function toggleStatBox(piece, stat) {
     const pTot = Object.values(state.hits[piece]).reduce((a, b) => a + b, 0);
     const act = Object.values(state.hits[piece]).filter(v => v > 0).length;
 
-    if (state.hits[piece][stat] > 0) state.hits[piece][stat] = 0;
-    else {
-        if (act < mStat && pTot < lim) state.hits[piece][stat] = 1;
+    if (state.hits[piece][stat] > 0) {
+        state.hits[piece][stat] = 0;
+        state.rollValues[piece][stat] = []; // Clear memory
+    } else {
+        if (act < mStat && pTot < lim) {
+            state.hits[piece][stat] = 1;
+            state.rollValues[piece][stat] = generateRollsFor(piece, stat, 1); // Add a single locked roll
+        }
         else event.target.checked = false; 
     }
     renderPiece(piece); updateSummary();
@@ -868,8 +932,18 @@ function changeRoll(piece, stat, dir) {
     const mSing = lim - 3; 
     let cTot = Object.values(state.hits[piece]).reduce((sum, val) => sum + Math.max(0, val - 1), 0);
 
-    if (dir === 1) { if (cTot < mRoll && cur >= 1 && cur < mSing) state.hits[piece][stat]++; } 
-    else if (dir === -1) { if (cur > 1) state.hits[piece][stat]--; }
+    if (dir === 1) { 
+        if (cTot < mRoll && cur >= 1 && cur < mSing) {
+            state.hits[piece][stat]++; 
+            state.rollValues[piece][stat].push(generateRollsFor(piece, stat, 1)[0]); // Append specific roll
+        }
+    } 
+    else if (dir === -1) { 
+        if (cur > 1) {
+            state.hits[piece][stat]--; 
+            state.rollValues[piece][stat].pop(); // Simply remove the last roll
+        }
+    }
     renderPiece(piece); updateSummary();
 }
 
@@ -926,6 +1000,11 @@ function renderPiece(piece) {
                 if(mode === 'avg') rStr = `+${Math.round((min+max)/2)}${sSuf}`;
                 else if(mode === 'low') rStr = `+${min}${sSuf}`;
                 else if(mode === 'high') rStr = `+${max}${sSuf}`;
+                else if(mode === 'random') {
+                    // Pulling directly from the memory bank
+                    let rSum = state.rollValues[piece][sid].reduce((a,b)=>a+b, 0);
+                    rStr = `+${rSum}${sSuf}`;
+                }
                 else rStr = `+${min}-${max}${sSuf}`;
             }
 
@@ -1000,29 +1079,37 @@ function mUpdate() {
 }
 
 function updateSummary() {
-    let t = { hp: [0,0], hpP: [0,0], atk: [0,0], atkP: [0,0], def: [0,0], defP: [0,0], spd: [0,0], spdP: [0,0], cr: [0,0], cd: [0,0], acc: [0,0], res: [0,0], ign: [0,0] };
+    // V2.0: Upgraded calculation arrays to [min, max, random_sum]
+    let t = { hp: [0,0,0], hpP: [0,0,0], atk: [0,0,0], atkP: [0,0,0], def: [0,0,0], defP: [0,0,0], spd: [0,0,0], spdP: [0,0,0], cr: [0,0,0], cd: [0,0,0], acc: [0,0,0], res: [0,0,0], ign: [0,0,0] };
 
     if(document.getElementById('ghToggle').checked) { 
-        t.hpP[0]+=20; t.hpP[1]+=20; t.atkP[0]+=20; t.atkP[1]+=20; t.defP[0]+=20; t.defP[1]+=20; 
-        t.cd[0]+=25; t.cd[1]+=25; t.acc[0]+=80; t.acc[1]+=80; t.res[0]+=80; t.res[1]+=80; 
+        t.hpP[0]+=20; t.hpP[1]+=20; t.hpP[2]+=20; 
+        t.atkP[0]+=20; t.atkP[1]+=20; t.atkP[2]+=20;
+        t.defP[0]+=20; t.defP[1]+=20; t.defP[2]+=20; 
+        t.cd[0]+=25; t.cd[1]+=25; t.cd[2]+=25;
+        t.acc[0]+=80; t.acc[1]+=80; t.acc[2]+=80;
+        t.res[0]+=80; t.res[1]+=80; t.res[2]+=80;
     }
     if(document.getElementById('fgToggle').checked) {
-        t.hpP[0]+=20; t.hpP[1]+=20; t.atkP[0]+=20; t.atkP[1]+=20; t.defP[0]+=20; t.defP[1]+=20;
-        t.spdP[0]+=10; t.spdP[1]+=10;
+        t.hpP[0]+=20; t.hpP[1]+=20; t.hpP[2]+=20;
+        t.atkP[0]+=20; t.atkP[1]+=20; t.atkP[2]+=20;
+        t.defP[0]+=20; t.defP[1]+=20; t.defP[2]+=20;
+        t.spdP[0]+=10; t.spdP[1]+=10; t.spdP[2]+=10;
     }
     
-    if(document.getElementById('m_blade').checked) { t.atk[0]+=75; t.atk[1]+=75; }
-    if(document.getElementById('m_deadly').checked) { t.cr[0]+=5; t.cr[1]+=5; }
-    if(document.getElementById('m_keen').checked) { t.cd[0]+=10; t.cd[1]+=10; }
-    if(document.getElementById('m_flawless').checked) { t.cd[0]+=20; t.cd[1]+=20; }
-    if(document.getElementById('m_tough').checked) { t.def[0]+=75; t.def[1]+=75; }
-    if(document.getElementById('m_defiant').checked) { t.res[0]+=10; t.res[1]+=10; }
-    if(document.getElementById('m_iron').checked) { t.def[0]+=200; t.def[1]+=200; }
-    if(document.getElementById('m_unshakable').checked) { t.res[0]+=50; t.res[1]+=50; }
-    if(document.getElementById('m_steadfast').checked) { t.hp[0]+=810; t.hp[1]+=810; }
-    if(document.getElementById('m_pinpoint').checked) { t.acc[0]+=10; t.acc[1]+=10; }
-    if(document.getElementById('m_elixir').checked) { t.hp[0]+=3000; t.hp[1]+=3000; }
-    if(document.getElementById('m_eagle').checked) { t.acc[0]+=50; t.acc[1]+=50; }
+    let applyMastery = (stat, val) => { t[stat][0]+=val; t[stat][1]+=val; t[stat][2]+=val; };
+    if(document.getElementById('m_blade').checked) applyMastery('atk', 75);
+    if(document.getElementById('m_deadly').checked) applyMastery('cr', 5);
+    if(document.getElementById('m_keen').checked) applyMastery('cd', 10);
+    if(document.getElementById('m_flawless').checked) applyMastery('cd', 20);
+    if(document.getElementById('m_tough').checked) applyMastery('def', 75);
+    if(document.getElementById('m_defiant').checked) applyMastery('res', 10);
+    if(document.getElementById('m_iron').checked) applyMastery('def', 200);
+    if(document.getElementById('m_unshakable').checked) applyMastery('res', 50);
+    if(document.getElementById('m_steadfast').checked) applyMastery('hp', 810);
+    if(document.getElementById('m_pinpoint').checked) applyMastery('acc', 10);
+    if(document.getElementById('m_elixir').checked) applyMastery('hp', 3000);
+    if(document.getElementById('m_eagle').checked) applyMastery('acc', 50);
 
     const gActive = document.getElementById('glyphSelect').value;
 
@@ -1030,8 +1117,7 @@ function updateSummary() {
         const rank = state.ranks[p.id];
         const pStat = state.primaries[p.id];
         const pValR = pVal[pStat][rank][p.t];
-        t[pStat][0] += pValR;
-        t[pStat][1] += pValR;
+        t[pStat][0] += pValR; t[pStat][1] += pValR; t[pStat][2] += pValR;
 
         aSub[p.id].forEach(sid => {
             if (sid === pStat) return;
@@ -1047,6 +1133,14 @@ function updateSummary() {
                 }
                 t[sid][0] += baseMin + gVal;
                 t[sid][1] += baseMax + gVal;
+                
+                let rSum = 0;
+                if (state.rollValues[p.id] && state.rollValues[p.id][sid]) {
+                    rSum = state.rollValues[p.id][sid].reduce((a,b)=>a+b, 0);
+                } else {
+                    rSum = Math.round((baseMin+baseMax)/2); // Safe fallback
+                }
+                t[sid][2] += rSum + gVal;
             }
         });
     });
@@ -1058,6 +1152,7 @@ function updateSummary() {
             Object.keys(sDef.stats).forEach(stat => {
                 t[stat][0] += sDef.stats[stat] * mult;
                 t[stat][1] += sDef.stats[stat] * mult;
+                t[stat][2] += sDef.stats[stat] * mult;
             });
         } else if (sDef.type === 9) {
             for(let i=1; i<=set.pcs; i++) {
@@ -1065,6 +1160,7 @@ function updateSummary() {
                     Object.keys(sDef.stats[i]).forEach(stat => {
                         t[stat][0] += sDef.stats[i][stat];
                         t[stat][1] += sDef.stats[i][stat];
+                        t[stat][2] += sDef.stats[i][stat];
                     });
                 }
             }
@@ -1075,73 +1171,82 @@ function updateSummary() {
     let bDataRaw = champId ? baseStats[champId] : null;
     let awkLevel = parseInt(document.getElementById('awkSelect').value) || 0;
     
-    let bData = null;
-    if (bDataRaw) {
-        bData = { ...bDataRaw };
-        if (awkLevel > 0 && bData.rarity !== 'common' && bData.rarity !== 'uncommon') {
-            let aCfg = awkStats[bData.rarity];
-            if (aCfg) {
-                if (awkLevel >= 1) bData.hp += aCfg[1].hp;
-                if (awkLevel >= 2) bData.atk += aCfg[2].atk;
-                if (awkLevel >= 3) bData.def += aCfg[3].def;
-                if (awkLevel >= 4) { bData.hp += aCfg[4].hp; bData.cd += aCfg[4].cd; }
-                if (awkLevel >= 5) { bData.res += aCfg[5].res; bData.acc += aCfg[5].acc; }
-                if (awkLevel >= 6) bData.spd += aCfg[6].spd;
-            }
+    // Pure flat awakening stats injection
+    let awkHp = 0, awkAtk = 0, awkDef = 0, awkCd = 0, awkRes = 0, awkAcc = 0, awkSpd = 0;
+    if (bDataRaw && awkLevel > 0 && bDataRaw.rarity !== 'common' && bDataRaw.rarity !== 'uncommon') {
+        let aCfg = awkStats[bDataRaw.rarity];
+        if (aCfg) {
+            if (awkLevel >= 1) awkHp += aCfg[1].hp || 0;
+            if (awkLevel >= 2) awkAtk += aCfg[2].atk || 0;
+            if (awkLevel >= 3) awkDef += aCfg[3].def || 0;
+            if (awkLevel >= 4) { awkHp += aCfg[4].hp || 0; awkCd += aCfg[4].cd || 0; }
+            if (awkLevel >= 5) { awkRes += aCfg[5].res || 0; awkAcc += aCfg[5].acc || 0; }
+            if (awkLevel >= 6) awkSpd += aCfg[6].spd || 0;
         }
     }
+    
+    t.hp[0] += awkHp; t.hp[1] += awkHp; t.hp[2] += awkHp;
+    t.atk[0] += awkAtk; t.atk[1] += awkAtk; t.atk[2] += awkAtk;
+    t.def[0] += awkDef; t.def[1] += awkDef; t.def[2] += awkDef;
+    t.cd[0] += awkCd; t.cd[1] += awkCd; t.cd[2] += awkCd;
+    t.res[0] += awkRes; t.res[1] += awkRes; t.res[2] += awkRes;
+    t.acc[0] += awkAcc; t.acc[1] += awkAcc; t.acc[2] += awkAcc;
+    t.spd[0] += awkSpd; t.spd[1] += awkSpd; t.spd[2] += awkSpd;
 
     const mode = document.getElementById('displayMode').value;
     const utilMode = document.getElementById('utilitySelect').value;
     const isCustom = utilMode === 'Custom';
 
+    // Formatter properly navigates ranges vs hard numbers
     const formatStat = (statKey, flt, pct, isPctType) => {
-        let bVal = bData ? bData[statKey] : 0;
-
-        let p0 = pct ? pct[0] : 0;
-        let p1 = pct ? pct[1] : 0;
-        let f0 = flt[0];
-        let f1 = flt[1];
+        let bVal = bDataRaw ? bDataRaw[statKey] : 0;
         let suf = isPctType ? "%" : "";
+        let mathStr = "", totalStr = "";
 
-        const rng = (v0, v1, s="") => v0 === v1 ? `${v0}${s}` : `[${v0}-${v1}]${s}`;
-        
-        let t0 = 0, t1 = 0;
-        if (bData) {
-            if (['hp','atk','def','spd'].includes(statKey)) {
-                t0 = Math.round(bVal + (bVal * (p0/100)) + f0);
-                t1 = Math.round(bVal + (bVal * (p1/100)) + f1);
+        if (mode === 'range') {
+            let f0 = flt[0], f1 = flt[1];
+            let p0 = pct ? pct[0] : 0, p1 = pct ? pct[1] : 0;
+            
+            let fRng = f0 === f1 ? `${f0}${suf}` : `[${f0}-${f1}]${suf}`;
+            let pRng = pct ? (p0 === p1 ? `${p0}%` : `[${p0}-${p1}]%`) : "";
+            
+            if (bDataRaw) {
+                if (['hp','atk','def','spd'].includes(statKey)) {
+                    mathStr = pct ? `${bVal} + ${pRng} + ${fRng}` : `${bVal} + ${fRng}`;
+                    let t0 = Math.round(bVal + (bVal * (p0/100)) + f0);
+                    let t1 = Math.round(bVal + (bVal * (p1/100)) + f1);
+                    totalStr = t0 === t1 ? `${t0}${suf}` : `[${t0}-${t1}]${suf}`;
+                } else {
+                    mathStr = `${bVal}${suf} + ${fRng}`;
+                    let t0 = bVal + f0; let t1 = bVal + f1;
+                    totalStr = t0 === t1 ? `${t0}${suf}` : `[${t0}-${t1}]${suf}`;
+                }
             } else {
-                t0 = bVal + f0;
-                t1 = bVal + f1;
+                mathStr = fRng + (pct ? ` + ${pRng}` : "");
+                totalStr = "";
             }
-        }
-
-        let mathStr = "";
-        let totalStr = "";
-
-        let curF0 = mode === 'avg' ? Math.round((f0+f1)/2) : (mode === 'high' ? f1 : f0);
-        let curF1 = mode === 'avg' ? curF0 : (mode === 'low' ? f0 : f1);
-        let curP0 = mode === 'avg' ? Math.round((p0+p1)/2) : (mode === 'high' ? p1 : p0);
-        let curP1 = mode === 'avg' ? curP0 : (mode === 'low' ? p0 : p1);
-        
-        let fRng = rng(curF0, curF1, suf);
-        let pRng = pct ? rng(curP0, curP1, "%") : "";
-        
-        if (bData) {
-            if (['hp','atk','def','spd'].includes(statKey)) {
-                mathStr = pct ? `${bVal} + ${pRng} + ${fRng}` : `${bVal} + ${fRng}`;
-            } else {
-                mathStr = `${bVal}${suf} + ${fRng}`;
-            }
-            let curT0 = mode === 'avg' ? Math.round((t0+t1)/2) : (mode === 'high' ? t1 : t0);
-            let curT1 = mode === 'avg' ? curT0 : (mode === 'low' ? t0 : t1);
-            totalStr = rng(curT0, curT1, suf);
         } else {
-            mathStr = fRng + (pct ? ` + ${pRng}` : "");
-            totalStr = "";
-        }
+            let curF, curP;
+            if (mode === 'random') { curF = flt[2]; curP = pct ? pct[2] : 0; }
+            else if (mode === 'avg') { curF = Math.round((flt[0]+flt[1])/2); curP = pct ? Math.round((pct[0]+pct[1])/2) : 0; }
+            else if (mode === 'low') { curF = flt[0]; curP = pct ? pct[0] : 0; }
+            else if (mode === 'high') { curF = flt[1]; curP = pct ? pct[1] : 0; }
 
+            if (bDataRaw) {
+                if (['hp','atk','def','spd'].includes(statKey)) {
+                    mathStr = pct ? `${bVal} + ${curP}% + ${curF}${suf}` : `${bVal} + ${curF}${suf}`;
+                    let tV = Math.round(bVal + (bVal * (curP/100)) + curF);
+                    totalStr = `${tV}${suf}`;
+                } else {
+                    mathStr = `${bVal}${suf} + ${curF}${suf}`;
+                    let tV = bVal + curF;
+                    totalStr = `${tV}${suf}`;
+                }
+            } else {
+                mathStr = `${curF}${suf}` + (pct ? ` + ${curP}%` : "");
+                totalStr = "";
+            }
+        }
         return { math: mathStr, total: totalStr };
     };
 
@@ -1156,22 +1261,29 @@ function updateSummary() {
         { k: 'res', l: 'RES:', v: formatStat('res', t.res, null, false) }
     ];
     
-    if(t.ign[0] > 0 || t.ign[1] > 0) rows.push({ k: 'ign', l: 'IGN DEF:', v: formatStat('ign', t.ign, null, true) });
+    if(t.ign[0] > 0 || t.ign[1] > 0 || t.ign[2] > 0) rows.push({ k: 'ign', l: 'IGN DEF:', v: formatStat('ign', t.ign, null, true) });
 
     if (['Tank', 'Support'].includes(utilMode)) {
         let ignoreDef = parseFloat(document.getElementById('ignoreDefSelect').value);
         
-        let curHpMode = mode === 'avg' ? Math.round((t.hp[0]+t.hp[1])/2) : (mode === 'high' ? t.hp[1] : t.hp[0]);
-        let curDefMode = mode === 'avg' ? Math.round((t.def[0]+t.def[1])/2) : (mode === 'high' ? t.def[1] : t.def[0]);
+        let getVal = (flt) => {
+            if (mode === 'random') return flt[2];
+            if (mode === 'avg' || mode === 'range') return Math.round((flt[0]+flt[1])/2);
+            if (mode === 'low') return flt[0];
+            if (mode === 'high') return flt[1];
+        };
+
+        let curHpMode = getVal(t.hp);
+        let curDefMode = getVal(t.def);
         
         let finalHp = curHpMode;
         let finalDef = curDefMode;
         
-        if (bData) {
-            let curHpP = mode === 'avg' ? Math.round((t.hpP[0]+t.hpP[1])/2) : (mode === 'high' ? t.hpP[1] : t.hpP[0]);
-            let curDefP = mode === 'avg' ? Math.round((t.defP[0]+t.defP[1])/2) : (mode === 'high' ? t.defP[1] : t.defP[0]);
-            finalHp = Math.round(bData.hp + (bData.hp * (curHpP/100)) + curHpMode);
-            finalDef = Math.round(bData.def + (bData.def * (curDefP/100)) + curDefMode);
+        if (bDataRaw) {
+            let curHpP = getVal(t.hpP);
+            let curDefP = getVal(t.defP);
+            finalHp = Math.round(bDataRaw.hp + (bDataRaw.hp * (curHpP/100)) + curHpMode);
+            finalDef = Math.round(bDataRaw.def + (bDataRaw.def * (curDefP/100)) + curDefMode);
         }
         
         let effDef = finalDef * (1 - ignoreDef);
@@ -1181,30 +1293,42 @@ function updateSummary() {
         rows.push({ k: 'ehp', l: 'eHP:', v: { math: `vs ${ignoreDef * 100}% Enemy Ignore`, total: ehpTotal.toLocaleString() } });
     }
 
-    if (['ATK Nuker', 'DEF Nuker', 'HP Nuker'].includes(utilMode) && bData) {
+    // V2.0 TWO-SIDED DMG BALANCER
+    if (['ATK Nuker', 'DEF Nuker', 'HP Nuker'].includes(utilMode) && bDataRaw) {
         let statKey = utilMode.split(' ')[0].toLowerCase(); 
+        let baseStat = bDataRaw[statKey]; 
         
-        let curStatMode = mode === 'avg' ? Math.round((t[statKey][0]+t[statKey][1])/2) : (mode === 'high' ? t[statKey][1] : t[statKey][0]);
-        let curStatPMode = mode === 'avg' ? Math.round((t[statKey+'P'][0]+t[statKey+'P'][1])/2) : (mode === 'high' ? t[statKey+'P'][1] : t[statKey+'P'][0]);
-        let curCdMode = mode === 'avg' ? Math.round((t.cd[0]+t.cd[1])/2) : (mode === 'high' ? t.cd[1] : t.cd[0]);
-
-        let baseStat = bData[statKey];
-        let totalCd = bData.cd + curCdMode; 
-        let totalStat = Math.round(baseStat + (baseStat * (curStatPMode/100)) + curStatMode);
-
-        let statRatio = (totalStat - baseStat) / baseStat;
-        let cdRatio = totalCd / 100;
-
+        let getVal = (flt, pct) => {
+            if (mode === 'random') return { f: flt[2], p: pct?pct[2]:0 };
+            if (mode === 'avg' || mode === 'range') return { f: Math.round((flt[0]+flt[1])/2), p: pct?Math.round((pct[0]+pct[1])/2):0 };
+            if (mode === 'low') return { f: flt[0], p: pct?pct[0]:0 };
+            if (mode === 'high') return { f: flt[1], p: pct?pct[1]:0 };
+        };
+        
+        let statVals = getVal(t[statKey], t[statKey+'P']);
+        let cdVals = getVal(t.cd, null);
+        
         let totalStr = "";
         
-        if (statRatio > cdRatio + 0.02) {
-            let targetCd = Math.round(statRatio * 100);
-            totalStr = `Add ${targetCd - totalCd}% C. DMG`;
-        } else if (cdRatio > statRatio + 0.02) {
-            let targetStat = Math.round(baseStat * (1 + cdRatio));
-            totalStr = `Add ${targetStat - totalStat} ${statKey.toUpperCase()}`;
+        if (mode === 'range') {
+            totalStr = "Switch mode from Range to view balance.";
         } else {
-            totalStr = "Perfectly Balanced";
+            let totalStat = Math.round(baseStat + (baseStat * (statVals.p/100)) + statVals.f);
+            let totalCd = bDataRaw.cd + cdVals.f; 
+            
+            let statRatio = (totalStat - baseStat) / baseStat;
+            let cdRatio = totalCd / 100;
+            
+            let targetCd = Math.round(statRatio * 100);
+            let targetStat = Math.round(baseStat + (baseStat * cdRatio));
+            
+            if (statRatio > cdRatio + 0.02) {
+                totalStr = `Add ${targetCd - totalCd}% C. DMG | Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
+            } else if (cdRatio > statRatio + 0.02) {
+                totalStr = `Add ${targetStat - totalStat} ${statKey.toUpperCase()} | Drop ${totalCd - targetCd}% C. DMG`;
+            } else {
+                totalStr = "Perfectly Balanced";
+            }
         }
 
         rows.push({ k: 'balance', l: 'DMG Balance:', v: { math: '', total: totalStr } });
