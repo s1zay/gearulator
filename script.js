@@ -1295,10 +1295,13 @@ function updateSummary() {
         let statVals = getVal(t[statKey], t[statKey+'P']);
         let cdVals = getVal(t.cd, null);
         
-        let totalStr = "";
+        let mStr = "";
+        let lStr = "|";
+        let tStr = "";
         
         if (mode === 'range') {
-            totalStr = "Switch mode from Range to view balance.";
+            mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
+            tStr = "Switch mode from Range to view balance.";
         } else {
             let totalStat = Math.round(baseStat + (baseStat * (statVals.p/100)) + statVals.f);
             let totalCd = bDataRaw.cd + cdVals.f; 
@@ -1310,16 +1313,18 @@ function updateSummary() {
             let targetStat = Math.round(baseStat + (baseStat * cdRatio));
             
             if (statRatio > cdRatio + 0.02) {
-                totalStr = `Add ${targetCd - totalCd}% C. DMG | Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
+                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>Add ${targetCd - totalCd}% C. DMG`;
+                tStr = `Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
             } else if (cdRatio > statRatio + 0.02) {
-                totalStr = `Add ${targetStat - totalStat} ${statKey.toUpperCase()} | Drop ${totalCd - targetCd}% C. DMG`;
+                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>Add ${targetStat - totalStat} ${statKey.toUpperCase()}`;
+                tStr = `Drop ${totalCd - targetCd}% C. DMG`;
             } else {
-                totalStr = "Perfectly Balanced";
+                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
+                tStr = "Perfectly Balanced";
             }
         }
 
-        // Pushing the text into math keeps our HTML structure clean to target with CSS
-        rows.push({ k: 'balance', l: 'DMG Balance:', v: { math: '', total: totalStr } });
+        rows.push({ k: 'balance', l: lStr, v: { math: mStr, total: tStr } });
     }
 
     let html = `
@@ -1334,7 +1339,6 @@ function updateSummary() {
         let extraClass = r.k === 'ehp' ? 'ehp-row' : (r.k === 'balance' ? 'balance-row' : '');
         let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
-        // Appended extraClass to sum-goal so it can be targeted by display:none in CSS
         html += `<div class="sum-ranges ${extraClass}">${r.v.math}</div>
                  <div class="sum-label ${extraClass}">${r.l}</div>
                  <div class="sum-final ${extraClass}">${r.v.total}</div>
