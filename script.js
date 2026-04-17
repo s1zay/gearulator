@@ -1299,8 +1299,8 @@ function updateSummary() {
         let tStr = "";
         
         if (mode === 'range') {
-            lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
-            tStr = "Switch mode from Range to view balance.";
+            lStr = `DMG Balance: |`;
+            tStr = "Switch mode from Range";
         } else {
             let totalStat = Math.round(baseStat + (baseStat * (statVals.p/100)) + statVals.f);
             let totalCd = bDataRaw.cd + cdVals.f; 
@@ -1312,17 +1312,18 @@ function updateSummary() {
             let targetStat = Math.round(baseStat + (baseStat * cdRatio));
             
             if (statRatio > cdRatio + 0.02) {
-                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span> Add ${targetCd - totalCd}% C. DMG |`;
+                lStr = `DMG Balance: Add ${targetCd - totalCd}% C. DMG |`;
                 tStr = `Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
             } else if (cdRatio > statRatio + 0.02) {
-                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span> Add ${targetStat - totalStat} ${statKey.toUpperCase()} |`;
+                lStr = `DMG Balance: Add ${targetStat - totalStat} ${statKey.toUpperCase()} |`;
                 tStr = `Drop ${totalCd - targetCd}% C. DMG`;
             } else {
-                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
+                lStr = `DMG Balance: |`;
                 tStr = "Perfectly Balanced";
             }
         }
 
+        // math is left empty because we are putting everything into the merged label column
         rows.push({ k: 'balance', l: lStr, v: { math: '', total: tStr } });
     }
 
