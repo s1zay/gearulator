@@ -1295,12 +1295,11 @@ function updateSummary() {
         let statVals = getVal(t[statKey], t[statKey+'P']);
         let cdVals = getVal(t.cd, null);
         
-        let mStr = "";
-        let lStr = "|";
+        let lStr = "";
         let tStr = "";
         
         if (mode === 'range') {
-            mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
+            lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
             tStr = "Switch mode from Range to view balance.";
         } else {
             let totalStat = Math.round(baseStat + (baseStat * (statVals.p/100)) + statVals.f);
@@ -1313,18 +1312,18 @@ function updateSummary() {
             let targetStat = Math.round(baseStat + (baseStat * cdRatio));
             
             if (statRatio > cdRatio + 0.02) {
-                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>Add ${targetCd - totalCd}% C. DMG`;
+                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span> Add ${targetCd - totalCd}% C. DMG |`;
                 tStr = `Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
             } else if (cdRatio > statRatio + 0.02) {
-                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>Add ${targetStat - totalStat} ${statKey.toUpperCase()}`;
+                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span> Add ${targetStat - totalStat} ${statKey.toUpperCase()} |`;
                 tStr = `Drop ${totalCd - targetCd}% C. DMG`;
             } else {
-                mStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
+                lStr = `<span style="font-weight:bold; margin-right:5px; color:#00ffff;">DMG Balance:</span>`;
                 tStr = "Perfectly Balanced";
             }
         }
 
-        rows.push({ k: 'balance', l: lStr, v: { math: mStr, total: tStr } });
+        rows.push({ k: 'balance', l: lStr, v: { math: '', total: tStr } });
     }
 
     let html = `
