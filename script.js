@@ -52,7 +52,6 @@ const statGoals = {
     'Support':   { g: ['hpP','defP','spd','acc'], s: ['hp','def'] }
 };
 
-// V2.0: Added rollValues to state for memory bank
 let state = { globalBudget: 72, pieceLimits: {}, ranks: {}, primaries: {}, hits: {}, rollValues: {} };
 let activeSets = [];
 let lastUtility = 'ATK Nuker';
@@ -123,7 +122,6 @@ function initSystem() {
     updateGlobal(); 
 }
 
-// Memory Bank specific roll generator
 function generateRollsFor(piece, stat, count) {
     let arr = [];
     let rnk = state.ranks[piece];
@@ -436,8 +434,6 @@ function resetSubstats() {
     updateSummary();
 }
 
-// V2.0: evaluateStats is strictly the math engine for the Optimizer now.
-// It ALWAYS evaluates math using the true minimum and maximum values to find the absolute mathematically "best" average build.
 function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     let t = { hp: [0,0], hpP: [0,0], atk: [0,0], atkP: [0,0], def: [0,0], defP: [0,0], spd: [0,0], spdP: [0,0], cr: [0,0], cd: [0,0], acc: [0,0], res: [0,0], ign: [0,0] };
 
@@ -509,7 +505,6 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     let bDataRaw = champId ? baseStats[champId] : null;
     let awkLevel = parseInt(document.getElementById('awkSelect').value) || 0;
     
-    // V2.0 AWAKENING MATH FIX: Calculate Awakening as FLAT stats, do NOT attach to base scaling pool.
     let awkHp = 0, awkAtk = 0, awkDef = 0, awkCd = 0, awkRes = 0, awkAcc = 0, awkSpd = 0;
     if (bDataRaw && awkLevel > 0 && bDataRaw.rarity !== 'common' && bDataRaw.rarity !== 'uncommon') {
         let aCfg = awkStats[bDataRaw.rarity];
@@ -533,7 +528,6 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
 
     let res = {};
 
-    // V2.0: evaluateStats strictly averages the result to give the Hill Climber a stable target.
     ['hp','atk','def','spd','cr','cd','acc','res'].forEach(k => {
         let bVal = bDataRaw ? bDataRaw[k] : 0;
         let p0 = t[k+'P'] ? t[k+'P'][0] : 0; let p1 = t[k+'P'] ? t[k+'P'][1] : 0;
@@ -626,13 +620,12 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         let totalStat = totals[statKey];
         let totalCd = totals.cd;
         
-        // V2.0: The 10% Efficiency Threshold Penalty Engine
         let statRatio = (totalStat - baseStat) / baseStat;
         let cdRatio = totalCd / 100;
         let variance = Math.abs(statRatio - cdRatio);
         
         if (variance > 0.10) {
-            score += variance * 1000000; // Trash the build if variance swings past 10%
+            score += variance * 1000000; 
         }
 
         let dmgMultiplier = totalStat * (1 + (totalCd / 100));
@@ -891,7 +884,6 @@ function rollDice() {
             });
         }
         
-        // V2.0 MEMORY BANK: Lock in the random numbers for the newly generated build
         gCfg.forEach(p => {
             aSub[p.id].forEach(stat => {
                 state.rollValues[p.id][stat] = generateRollsFor(p.id, stat, state.hits[p.id][stat]);
@@ -914,11 +906,11 @@ function toggleStatBox(piece, stat) {
 
     if (state.hits[piece][stat] > 0) {
         state.hits[piece][stat] = 0;
-        state.rollValues[piece][stat] = []; // Clear memory
+        state.rollValues[piece][stat] = []; 
     } else {
         if (act < mStat && pTot < lim) {
             state.hits[piece][stat] = 1;
-            state.rollValues[piece][stat] = generateRollsFor(piece, stat, 1); // Add a single locked roll
+            state.rollValues[piece][stat] = generateRollsFor(piece, stat, 1); 
         }
         else event.target.checked = false; 
     }
@@ -935,13 +927,13 @@ function changeRoll(piece, stat, dir) {
     if (dir === 1) { 
         if (cTot < mRoll && cur >= 1 && cur < mSing) {
             state.hits[piece][stat]++; 
-            state.rollValues[piece][stat].push(generateRollsFor(piece, stat, 1)[0]); // Append specific roll
+            state.rollValues[piece][stat].push(generateRollsFor(piece, stat, 1)[0]); 
         }
     } 
     else if (dir === -1) { 
         if (cur > 1) {
             state.hits[piece][stat]--; 
-            state.rollValues[piece][stat].pop(); // Simply remove the last roll
+            state.rollValues[piece][stat].pop(); 
         }
     }
     renderPiece(piece); updateSummary();
@@ -1001,7 +993,6 @@ function renderPiece(piece) {
                 else if(mode === 'low') rStr = `+${min}${sSuf}`;
                 else if(mode === 'high') rStr = `+${max}${sSuf}`;
                 else if(mode === 'random') {
-                    // Pulling directly from the memory bank
                     let rSum = state.rollValues[piece][sid].reduce((a,b)=>a+b, 0);
                     rStr = `+${rSum}${sSuf}`;
                 }
@@ -1079,7 +1070,6 @@ function mUpdate() {
 }
 
 function updateSummary() {
-    // V2.0: Upgraded calculation arrays to [min, max, random_sum]
     let t = { hp: [0,0,0], hpP: [0,0,0], atk: [0,0,0], atkP: [0,0,0], def: [0,0,0], defP: [0,0,0], spd: [0,0,0], spdP: [0,0,0], cr: [0,0,0], cd: [0,0,0], acc: [0,0,0], res: [0,0,0], ign: [0,0,0] };
 
     if(document.getElementById('ghToggle').checked) { 
@@ -1138,7 +1128,7 @@ function updateSummary() {
                 if (state.rollValues[p.id] && state.rollValues[p.id][sid]) {
                     rSum = state.rollValues[p.id][sid].reduce((a,b)=>a+b, 0);
                 } else {
-                    rSum = Math.round((baseMin+baseMax)/2); // Safe fallback
+                    rSum = Math.round((baseMin+baseMax)/2); 
                 }
                 t[sid][2] += rSum + gVal;
             }
@@ -1171,7 +1161,6 @@ function updateSummary() {
     let bDataRaw = champId ? baseStats[champId] : null;
     let awkLevel = parseInt(document.getElementById('awkSelect').value) || 0;
     
-    // Pure flat awakening stats injection
     let awkHp = 0, awkAtk = 0, awkDef = 0, awkCd = 0, awkRes = 0, awkAcc = 0, awkSpd = 0;
     if (bDataRaw && awkLevel > 0 && bDataRaw.rarity !== 'common' && bDataRaw.rarity !== 'uncommon') {
         let aCfg = awkStats[bDataRaw.rarity];
@@ -1197,7 +1186,6 @@ function updateSummary() {
     const utilMode = document.getElementById('utilitySelect').value;
     const isCustom = utilMode === 'Custom';
 
-    // Formatter properly navigates ranges vs hard numbers
     const formatStat = (statKey, flt, pct, isPctType) => {
         let bVal = bDataRaw ? bDataRaw[statKey] : 0;
         let suf = isPctType ? "%" : "";
@@ -1293,7 +1281,6 @@ function updateSummary() {
         rows.push({ k: 'ehp', l: 'eHP:', v: { math: `vs ${ignoreDef * 100}% Enemy Ignore`, total: ehpTotal.toLocaleString() } });
     }
 
-    // V2.0 TWO-SIDED DMG BALANCER
     if (['ATK Nuker', 'DEF Nuker', 'HP Nuker'].includes(utilMode) && bDataRaw) {
         let statKey = utilMode.split(' ')[0].toLowerCase(); 
         let baseStat = bDataRaw[statKey]; 
@@ -1331,6 +1318,7 @@ function updateSummary() {
             }
         }
 
+        // Pushing the text into math keeps our HTML structure clean to target with CSS
         rows.push({ k: 'balance', l: 'DMG Balance:', v: { math: '', total: totalStr } });
     }
 
@@ -1346,10 +1334,11 @@ function updateSummary() {
         let extraClass = r.k === 'ehp' ? 'ehp-row' : (r.k === 'balance' ? 'balance-row' : '');
         let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
+        // Appended extraClass to sum-goal so it can be targeted by display:none in CSS
         html += `<div class="sum-ranges ${extraClass}">${r.v.math}</div>
                  <div class="sum-label ${extraClass}">${r.l}</div>
                  <div class="sum-final ${extraClass}">${r.v.total}</div>
-                 <div class="sum-goal"><input type="number" value="${gVal}" placeholder="-" ${inputDisabled} oninput="saveUserGoal('${r.k}', this.value)"></div>`; 
+                 <div class="sum-goal ${extraClass}"><input type="number" value="${gVal}" placeholder="-" ${inputDisabled} oninput="saveUserGoal('${r.k}', this.value)"></div>`; 
     });
     document.getElementById('summaryOutput').innerHTML = html;
 }

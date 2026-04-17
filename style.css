@@ -1,15 +1,13 @@
 :root { --gold: #d4af37; --bg: #1a1a1a; --card: #2d2d2d; --panel: #333; --text: #ffffff; --green: #44ff44; --red: #ff4444; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; overflow-x: hidden; }
+body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; overflow-x: hidden; }
 
 /* DASHBOARD SPLIT LAYOUT */
-.top-dashboard { display: flex; gap: 15px; margin-bottom: 10px; align-items: stretch; }
-.left-col { flex: 1; display: flex; flex-direction: column; }
-.right-col { flex: 1.2; display: flex; flex-direction: column; } 
-.right-col .section-card { flex-grow: 1; margin-bottom: 0; }
-.left-col .section-card { margin-bottom: 0; }
+.dashboard-wrapper { display: flex; gap: 20px; align-items: flex-start; max-width: 1400px; margin: 0 auto; }
+.left-col { flex: 1; display: flex; flex-direction: column; max-width: 50%; }
+.right-col { flex: 1; display: flex; flex-direction: column; min-width: 0; } 
 
-.section-card { background: var(--panel); border-radius: 8px; border: 1px solid #444; margin-bottom: 10px; overflow: hidden; }
+.section-card { background: var(--panel); border-radius: 8px; border: 1px solid #444; margin-bottom: 12px; overflow: hidden; }
 .section-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.05); }
 .section-header h2 { margin: 0; font-size: 0.85em; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px;}
 .section-content { padding: 15px; display: block; }
@@ -67,9 +65,9 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .m-stat { color: var(--gold); font-size: 0.9em; }
 
 /* GRID CSS */
-.gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px;}
+.gear-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 10px;}
 .gear-card { background: #262626; border-radius: 8px; border: 1px solid #444; position: relative; cursor: pointer; min-height: 120px; transition: transform 0.1s; display: flex; flex-direction: column; overflow: hidden;}
-.gear-card.expanded { grid-column: span 3; cursor: default; }
+.gear-card.expanded { grid-column: 1 / -1; cursor: default; }
 
 .card-header { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; font-size: 0.7em; font-weight: bold; color: #888; display: flex; flex-direction: column; gap: 6px; align-items: center; z-index: 2;}
 .rank-toggle { display: flex; background: #111; border-radius: 4px; overflow: hidden; border: 1px solid #444; z-index: 2;}
@@ -131,22 +129,32 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .sum-goal input:disabled { color: #888; border-color: #333; background: #222; opacity: 1; -webkit-text-fill-color: #888;}
 
 .col-header { color: #888; font-size: 0.7em; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;}
-.ehp-row, .balance-row { color: #00ffff !important; }
+.ehp-row { color: #00ffff !important; }
+
+/* DMG BALANCE ROW FORMATTING */
+.balance-row { color: #00ffff !important; }
+.sum-ranges.balance-row, .sum-goal.balance-row { display: none; }
+.sum-label.balance-row { grid-column: 1 / 3; text-align: right; padding-right: 10px;}
+.sum-final.balance-row { grid-column: 3 / 5; text-align: left; white-space: nowrap; font-size: 1.05em; padding-left: 5px;}
 
 .override-btn { background:#444; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.75em; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.2s; }
 .override-btn.active { background:var(--gold); color:#000; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);}
 
-@media (max-width: 600px) { 
-    .top-dashboard { flex-direction: column; gap: 0; margin-bottom: 0; }
-    .left-col .section-card { margin-bottom: 10px; }
-    .right-col .section-card { margin-bottom: 10px; }
+/* MOBILE OVERRIDES */
+@media (max-width: 800px) { 
+    .dashboard-wrapper { flex-direction: column; gap: 0; }
+    .left-col, .right-col { max-width: 100%; }
 
-    .gear-grid { gap: 5px; } 
+    .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px;} 
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
     .primary-display { font-size: 0.8em; }
+    
     .summary-grid { max-width: 100%; grid-template-columns: 1fr auto 75px 50px; gap: 4px; }
     .sum-ranges { font-size: 0.85em; letter-spacing: -0.8px;}
     .sum-label { font-size: 0.9em; padding: 0 4px; min-width: auto;}
     .sum-final { font-size: 0.95em; }
     .sum-goal input { font-size: 0.85em; padding: 2px; }
+
+    /* Shrink the Balance row slightly on tiny screens so it doesn't overflow horizontally */
+    .sum-final.balance-row { font-size: 0.9em; letter-spacing: -0.5px; }
 }
