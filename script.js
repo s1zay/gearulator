@@ -556,15 +556,17 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
     let score = 0;
 
     let pctRaw = parseFloat(document.getElementById('budgetSlider').value);
-    let penWeight = Math.max(0.01, (100 - pctRaw) / 100); 
+    
+    // Exponential curve so lower percentages have drastically higher penalties to discourage stacking
+    let penWeight = Math.max(0.001, Math.pow((100 - pctRaw) / 100, 3)); 
     let rollPenalty = 0;
     
     Object.keys(hitsObj).forEach(p => {
         Object.values(hitsObj[p]).forEach(count => {
-            if (count === 3) rollPenalty += 5000;       
-            if (count === 4) rollPenalty += 50000;      
-            if (count === 5) rollPenalty += 500000;     
-            if (count === 6) rollPenalty += 5000000;    
+            if (count === 3) rollPenalty += 100000;       
+            if (count === 4) rollPenalty += 1500000;      
+            if (count === 5) rollPenalty += 20000000;     
+            if (count === 6) rollPenalty += 250000000;    
         });
     });
 
@@ -630,6 +632,7 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
 
         let dmgMultiplier = totalStat * (1 + (totalCd / 100));
         score -= dmgMultiplier;
+        score += (rollPenalty * penWeight); 
     } else if (utility === 'Custom') {
         score += (rollPenalty * penWeight);
     }
@@ -654,7 +657,11 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
             let mutablePieces = gCfg.filter(p => p.po.length > 1);
             let p = mutablePieces[Math.floor(Math.random() * mutablePieces.length)].id;
             
-            let validPrimaryOptions = gCfg.find(x => x.id === p).po.filter(opt => opt !== mutatedPris[p]);
+            // Prevents the primary stat from randomly changing into a stat that is already a substat
+            let validPrimaryOptions = gCfg.find(x => x.id === p).po.filter(opt => 
+                opt !== mutatedPris[p] && (!mutatedHits[p][opt] || mutatedHits[p][opt] === 0)
+            );
+            
             if (validPrimaryOptions.length > 0) {
                  mutatedPris[p] = validPrimaryOptions[Math.floor(Math.random() * validPrimaryOptions.length)];
             }
@@ -742,7 +749,9 @@ function rollDice() {
 
             gCfg.forEach(p => {
                 let pId = p.id;
-                let pOptions = aSub[pId]; 
+                let pPri = state.primaries[pId];
+                // Check current primary stat and remove it from the pool to prevent 3-stat rings!
+                let pOptions = aSub[pId].filter(stat => stat !== pPri); 
                 pOptions = pOptions.sort(() => Math.random() - 0.5);
                 let chosen = pOptions.slice(0, 4);
 
@@ -764,7 +773,8 @@ function rollDice() {
             g_used = 0; s_used = 0; t_used = 0;
             gCfg.forEach(p => {
                 let pId = p.id;
-                let pOptions = aSub[pId];
+                let pPri = state.primaries[pId];
+                let pOptions = aSub[pId].filter(stat => stat !== pPri);
                 let chosen = pOptions.sort(()=>Math.random()-0.5).slice(0, 4);
                 chosen.forEach(stat => {
                     if (sGoals.g.includes(stat)) g_used++;
