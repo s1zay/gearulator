@@ -1043,10 +1043,10 @@ function renderPiece(piece) {
                 ${ascPool[piece].map(opt => `<option value="${opt}" ${ascStat===opt?'selected':''}>${roll[opt].n.replace('%','')}</option>`).join('')}
             </select>`;
         } else {
-            aHTML = `[<span class="asc-name">${aNameRaw}</span>]`;
+            aHTML = `<span class="asc-name">${aNameRaw}</span>`;
         }
         
-        aDisp.innerHTML = `✦ ${aHTML}<span class="asc-val">+${aValRaw}${aSuffix}</span>`;
+        aDisp.innerHTML = `${aHTML}<span class="asc-val">+${aValRaw}${aSuffix}</span>`;
     } else {
         if (isExp) {
             document.getElementById(`card_${piece}`).classList.add('has-ascension');
