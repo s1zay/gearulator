@@ -77,11 +77,11 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .btn-rank:active { background: var(--gold); color: black; }
 .card-title { font-size: 0.65em; font-weight: bold; color: #888; text-align: right; text-transform: uppercase; line-height: 1.1; width: 55%; word-wrap: break-word;}
 
-/* PRIMARY STAT ROW - LINEAR/CENTERED */
-.primary-display { display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--gold); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; z-index: 2;}
-.primary-select { background: #111; color: var(--gold); border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 0.75em; padding: 2px 4px; max-width: 95%; text-align: center; cursor: pointer; margin-bottom: 2px;}
+/* PRIMARY STAT ROW - SINGLE LINE / CENTERED */
+.primary-display { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; color: var(--gold); font-weight: bold; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; z-index: 2;}
+.primary-select { background: #111; color: var(--gold); border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 0.7em; padding: 2px; max-width: 55%; text-align: center; cursor: pointer; margin: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden;}
 .primary-val { font-size: 1.1em; }
-.primary-name { font-size: 0.85em; margin-bottom: 2px;}
+.primary-name { font-size: 0.85em; margin: 0;}
 
 .limits-bar { display: none; }
 
@@ -92,10 +92,10 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 /* COLLAPSED VIEW: PERFECTLY LINEAR AND CENTERED */
 .gear-card:not(.expanded) .sub-row { flex-direction: column; align-items: center; justify-content: center; }
-.gear-card:not(.expanded) .sub-row-top { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; }
+.gear-card:not(.expanded) .sub-row-top { display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 8px; width: 100%; }
 .gear-card:not(.expanded) .stat-toggle input { display: none; } /* Hide checkbox for cleaner centered look */
-.gear-card:not(.expanded) .sub-label { font-size: 0.8em; color: #ccc; font-weight: bold; text-align: center; }
-.gear-card:not(.expanded) .sub-val { font-family: monospace; font-size: 0.95em; font-weight: 900; text-align: center; margin-top: 1px; letter-spacing: -0.5px;}
+.gear-card:not(.expanded) .sub-label { font-size: 0.8em; color: #ccc; font-weight: bold; text-align: right; margin: 0;}
+.gear-card:not(.expanded) .sub-val { font-family: monospace; font-size: 0.95em; font-weight: 900; text-align: left; margin: 0; letter-spacing: -0.5px;}
 
 /* EXPANDED VIEW: HORIZONTAL FOR EDITING CONTROLS */
 .gear-card.expanded .sub-row { flex-direction: column; align-items: stretch; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 4px; gap: 6px; margin-bottom: 6px;}

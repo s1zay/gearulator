@@ -1029,7 +1029,7 @@ function renderPiece(piece) {
                 <div class="sub-row">
                     <div class="sub-row-top">
                         <label class="stat-toggle">
-                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')">
+                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')" style="${isExp?'':'display:none;'}">
                             <span class="sub-label">${sNameFormatted}${isExp && rCnt>0 ? ` <span class="roll-ind ${colorCls}">[${rCnt}]</span>`:''}</span>
                         </label>
                         <div class="sub-val ${colorCls}">${rStr}${!isExp?rInd:''}${gStr}</div>
