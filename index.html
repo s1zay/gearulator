@@ -108,6 +108,15 @@
                             </select>
                         </label>
                     </div>
+                    
+                    <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
+                        <div class="setting-label">Gear Ascension Injection</div>
+                        <select id="ascensionMode" class="top-utility" style="margin-top: 5px; font-size: 0.8em; padding: 6px;" onchange="handleAscensionModeChange()">
+                            <option value="off" selected>Off</option>
+                            <option value="ideal">Ideal (Matches Utility)</option>
+                            <option value="custom" style="display:none;">Custom</option>
+                        </select>
+                    </div>
 
                     <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
                         <div class="setting-label">Calculation Display Mode</div>

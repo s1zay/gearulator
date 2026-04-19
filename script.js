@@ -29,6 +29,41 @@ const utilityPrimaries = {
     'Custom':    { GAU: 'cd', CHE: 'atkP', BOO: 'spd', RIN: 'atk', AMU: 'cd', BAN: 'atk' }
 };
 
+/* ASCENSION DICTIONARIES (Rank AND Piece Type Aware) */
+const ascVals = {
+    hp:   { AR: { 5: 870, 6: 1224 }, AC: { 5: 870, 6: 1224 } },
+    hpP:  { AR: { 5: 13, 6: 20 }, AC: { 5: 0, 6: 0 } },
+    atk:  { AR: { 5: 56, 6: 80 }, AC: { 5: 56, 6: 80 } },
+    atkP: { AR: { 5: 13, 6: 20 }, AC: { 5: 0, 6: 0 } },
+    def:  { AR: { 5: 56, 6: 80 }, AC: { 5: 56, 6: 80 } },
+    defP: { AR: { 5: 13, 6: 20 }, AC: { 5: 0, 6: 0 } },
+    cr:   { AR: { 5: 8, 6: 10 }, AC: { 5: 0, 6: 0 } },
+    cd:   { AR: { 5: 14, 6: 20 }, AC: { 5: 10, 6: 12 } },
+    spd:  { AR: { 5: 9, 6: 12 }, AC: { 5: 0, 6: 0 } },
+    acc:  { AR: { 5: 20, 6: 29 }, AC: { 5: 20, 6: 29 } },
+    res:  { AR: { 5: 20, 6: 29 }, AC: { 5: 20, 6: 29 } }
+};
+
+const ascPool = { 
+    WEA: ['hp','atk','def'], HEL: ['hp','atk','def'], SHI: ['hp','atk','def'], 
+    GAU: ['hp','hpP','atk','atkP','def','defP','cr','cd'], 
+    CHE: ['hp','hpP','atk','atkP','def','defP','acc','res'], 
+    BOO: ['hp','hpP','atk','atkP','def','defP','spd'], 
+    RIN: ['hp','atk','def'], 
+    AMU: ['hp','atk','def','cd','acc','res'], 
+    BAN: ['hp','atk','def','acc','res','spd'] 
+};
+
+/* Strictly matches available stats per slot based on the updated table */
+const utilityAscensions = {
+    'ATK Nuker': { WEA:'atk', HEL:'hp', SHI:'def', GAU:'cd', CHE:'atkP', BOO:'spd', RIN:'atk', AMU:'cd', BAN:'atk' },
+    'DEF Nuker': { WEA:'def', HEL:'hp', SHI:'def', GAU:'cd', CHE:'defP', BOO:'spd', RIN:'def', AMU:'cd', BAN:'def' },
+    'HP Nuker':  { WEA:'hp', HEL:'hp', SHI:'def', GAU:'cd', CHE:'hpP', BOO:'spd', RIN:'hp', AMU:'cd', BAN:'hp' },
+    'Tank':      { WEA:'def', HEL:'hp', SHI:'def', GAU:'hpP', CHE:'res', BOO:'spd', RIN:'def', AMU:'hp', BAN:'res' },
+    'Support':   { WEA:'hp', HEL:'hp', SHI:'def', GAU:'hpP', CHE:'acc', BOO:'spd', RIN:'hp', AMU:'hp', BAN:'spd' },
+    'Custom':    { WEA:'atk', HEL:'hp', SHI:'def', GAU:'cd', CHE:'atkP', BOO:'spd', RIN:'atk', AMU:'cd', BAN:'atk' }
+};
+
 const roll = { hpP: { n: "HP%", p: true, AR: { 5:[4,6], 6:[5,7] }, AC: { 5:[4,6], 6:[5,7] } }, atkP: { n: "ATK%", p: true, AR: { 5:[4,6], 6:[5,7] }, AC: { 5:[4,6], 6:[5,7] } }, defP: { n: "DEF%", p: true, AR: { 5:[4,6], 6:[5,7] }, AC: { 5:[4,6], 6:[5,7] } }, cr: { n: "C. RATE", p: true, AR: { 3:[3,5], 5:[3,5], 6:[5,7] }, AC: { 5:[3,5], 6:[5,7] } }, cd: { n: "C. DMG", p: true, AR: { 5:[4,6], 6:[5,7] }, AC: { 5:[4,6], 6:[5,7] } }, spd: { n: "SPD", p: false, AR: { 5:[3,5], 6:[5,6] }, AC: { 5:[3,5], 6:[5,6] } }, acc: { n: "ACC", p: false, AR: { 5:[7,10], 6:[9,12] }, AC: { 5:[7,10], 6:[9,12] } }, res: { n: "RES", p: false, AR: { 5:[7,10], 6:[9,12] }, AC: { 5:[7,10], 6:[9,12] } }, hp: { n: "HP", p: false, AR: { 5:[140,225], 6:[180,315] }, AC: { 5:[820,950], 6:[1000,1150] } }, atk: { n: "ATK", p: false, AR: { 5:[10,18], 6:[14,24] }, AC: { 5:[45,55], 6:[55,70] } }, def: { n: "DEF", p: false, AR: { 5:[10,18], 6:[14,24] }, AC: { 5:[45,55], 6:[55,70] } } };
 
 const pVal = { hp: { 5: { AR: 3480, AC: 2750 }, 6: { AR: 4080, AC: 3300 } }, hpP: { 5: { AR: 50, AC: 50 }, 6: { AR: 60, AC: 60 } }, def: { 5: { AR: 225, AC: 215 }, 6: { AR: 265, AC: 260 } }, defP: { 5: { AR: 50, AC: 50 }, 6: { AR: 60, AC: 60 } }, atk: { 5: { AR: 225, AC: 215 }, 6: { AR: 265, AC: 260 } }, atkP: { 5: { AR: 50, AC: 50 }, 6: { AR: 60, AC: 60 } }, cr: { 5: { AR: 50, AC: 50 }, 6: { AR: 60, AC: 60 } }, cd: { 5: { AR: 65, AC: 33 }, 6: { AR: 80, AC: 40 } }, spd: { 5: { AR: 40, AC: 40 }, 6: { AR: 45, AC: 45 } }, acc: { 5: { AR: 78, AC: 78 }, 6: { AR: 96, AC: 96 } }, res: { 5: { AR: 78, AC: 78 }, 6: { AR: 96, AC: 96 } } };
@@ -52,7 +87,7 @@ const statGoals = {
     'Support':   { g: ['hpP','defP','spd','acc'], s: ['hp','def'] }
 };
 
-let state = { globalBudget: 72, pieceLimits: {}, ranks: {}, primaries: {}, hits: {}, rollValues: {} };
+let state = { globalBudget: 72, pieceLimits: {}, ranks: {}, primaries: {}, ascensions: {}, hits: {}, rollValues: {} };
 let activeSets = [];
 let lastUtility = 'ATK Nuker';
 let userGoals = { hp: '', atk: '', def: '', spd: 250, cr: 100, cd: '', acc: '', res: '', ign: '' };
@@ -108,6 +143,7 @@ const setDB = {
 function initSystem() {
     gCfg.forEach(p => {
         state.ranks[p.id] = 6; 
+        state.ascensions[p.id] = 'none';
         let defaultP = (p.id === 'GAU') ? 'cd' : (p.id === 'BOO' ? 'spd' : p.po[0]);
         state.primaries[p.id] = defaultP;
         state.hits[p.id] = {};
@@ -292,6 +328,7 @@ function buildHTMLGrid() {
                 <span id="title_${p.id}" class="card-title">${p.n}</span>
             </div>
             <div class="primary-display" id="p_disp_${p.id}"></div>
+            <div class="ascension-display" id="a_disp_${p.id}"></div>
             <div class="limits-bar" id="limits_${p.id}"><span>Stats: <b id="l_stat_${p.id}">0/4</b></span><span>Rolls: <b id="l_rolls_${p.id}">0/4</b></span></div>
             <div class="sub-stat-list" id="subs_${p.id}"></div>
         </div>`;
@@ -317,6 +354,25 @@ function changePrimary(piece, newPrimary) {
         state.rollValues[piece][newPrimary] = [];
     }
     renderPiece(piece); updateSummary();
+}
+
+function handleAscensionModeChange() {
+    const mode = document.getElementById('ascensionMode').value;
+    const util = document.getElementById('utilitySelect').value;
+    if (mode === 'ideal') {
+        gCfg.forEach(p => state.ascensions[p.id] = utilityAscensions[util][p.id]);
+    } else if (mode === 'off') {
+        gCfg.forEach(p => state.ascensions[p.id] = 'none');
+    }
+    gCfg.forEach(p => renderPiece(p.id));
+    updateSummary();
+}
+
+function changeAscension(piece, val) {
+    state.ascensions[piece] = val;
+    document.getElementById('ascensionMode').value = 'custom';
+    renderPiece(piece);
+    updateSummary();
 }
 
 function calcLimits(budget, utility) {
@@ -398,6 +454,12 @@ function updateGlobal() {
             });
             buildHTMLGrid();
         }
+        
+        const ascMode = document.getElementById('ascensionMode').value;
+        if (ascMode === 'ideal' || ascMode === 'custom') {
+            document.getElementById('ascensionMode').value = 'ideal';
+            gCfg.forEach(p => state.ascensions[p.id] = utilityAscensions[utility][p.id]);
+        }
     }
 
     document.getElementById('rarityLabel').innerText = `${Math.round(pctRaw)}%`;
@@ -450,6 +512,15 @@ function evaluateStats(activeHits, currentPrimaries = state.primaries) {
         const pStat = currentPrimaries[p.id];
         t[pStat][0] += pVal[pStat][rank][p.t];
         t[pStat][1] += pVal[pStat][rank][p.t];
+
+        const asc = state.ascensions[p.id];
+        if (asc && asc !== 'none' && ascVals[asc]) {
+            const aVal = ascVals[asc][p.t][rank];
+            if (aVal > 0) {
+                t[asc][0] += aVal;
+                t[asc][1] += aVal;
+            }
+        }
 
         aSub[p.id].forEach(sid => {
             if (sid === pStat) return;
@@ -934,7 +1005,9 @@ function renderPiece(piece) {
     const config = gCfg.find(p => p.id === piece);
     const rank = state.ranks[piece];
     const pStat = state.primaries[piece];
+    const ascStat = state.ascensions[piece];
     const mode = document.getElementById('displayMode').value;
+    const isExp = document.getElementById('card_' + piece).classList.contains('expanded');
     
     const pValRaw = pVal[pStat][rank][config.t];
     const pSuffix = roll[pStat].p ? "%" : "";
@@ -954,6 +1027,38 @@ function renderPiece(piece) {
         pHTML = `<span class="primary-name">${pNameRaw}</span>`;
     }
     document.getElementById(`p_disp_${piece}`).innerHTML = `${pHTML}<span class="primary-val">${pValRaw}${pSuffix}</span>`;
+
+    // RENDER ASCENSION INJECTION
+    const aDisp = document.getElementById(`a_disp_${piece}`);
+    if (ascStat && ascStat !== 'none') {
+        document.getElementById(`card_${piece}`).classList.add('has-ascension');
+        let aNameRaw = roll[ascStat] ? roll[ascStat].n.replace('%','') : '';
+        let aValRaw = ascVals[ascStat][config.t][rank];
+        let aSuffix = roll[ascStat] && roll[ascStat].p ? "%" : "";
+        
+        let aHTML = '';
+        if (isExp) {
+            aHTML = `<select class="asc-select" onchange="changeAscension('${piece}', this.value)" onclick="event.stopPropagation()">
+                <option value="none">Remove</option>
+                ${ascPool[piece].map(opt => `<option value="${opt}" ${ascStat===opt?'selected':''}>${roll[opt].n.replace('%','')}</option>`).join('')}
+            </select>`;
+        } else {
+            aHTML = `[<span class="asc-name">${aNameRaw}</span>]`;
+        }
+        
+        aDisp.innerHTML = `✦ ${aHTML}<span class="asc-val">+${aValRaw}${aSuffix}</span>`;
+    } else {
+        if (isExp) {
+            document.getElementById(`card_${piece}`).classList.add('has-ascension');
+            aDisp.innerHTML = `<select class="asc-select" onchange="changeAscension('${piece}', this.value)" onclick="event.stopPropagation()">
+                <option value="none" selected>+ Add Ascension</option>
+                ${ascPool[piece].map(opt => `<option value="${opt}">${roll[opt].n.replace('%','')}</option>`).join('')}
+            </select>`;
+        } else {
+            document.getElementById(`card_${piece}`).classList.remove('has-ascension');
+            aDisp.innerHTML = '';
+        }
+    }
 
     const lim = state.pieceLimits[piece];
     const mStat = 4;
@@ -975,7 +1080,6 @@ function renderPiece(piece) {
     else if (totalHits === 7) titleSpan.classList.add('glow-epic');
 
     const container = document.getElementById('subs_' + piece);
-    const isExp = document.getElementById('card_' + piece).classList.contains('expanded');
     
     const gActive = document.getElementById('glyphSelect').value;
 
@@ -1116,6 +1220,17 @@ function updateSummary() {
         const pStat = state.primaries[p.id];
         const pValR = pVal[pStat][rank][p.t];
         t[pStat][0] += pValR; t[pStat][1] += pValR; t[pStat][2] += pValR;
+
+        // ASCENSION MATH
+        const asc = state.ascensions[p.id];
+        if (asc && asc !== 'none' && ascVals[asc]) {
+            const aVal = ascVals[asc][p.t][rank];
+            if (aVal > 0) {
+                t[asc][0] += aVal;
+                t[asc][1] += aVal;
+                t[asc][2] += aVal;
+            }
+        }
 
         aSub[p.id].forEach(sid => {
             if (sid === pStat) return;
@@ -1346,7 +1461,6 @@ function updateSummary() {
         let gVal = userGoals[r.k] !== undefined ? userGoals[r.k] : '';
         let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
-        // This specifically intercepts the DMG balance row and formats it cleanly across the whole table width
         if (r.k === 'balance') {
             html += `<div style="grid-column: 1 / -1; text-align: center; color: #00ffff; font-family: monospace; font-size: 1.05em; font-weight: 900; margin-top: 5px;">${r.l} ${r.v.total}</div>`;
         } else if (r.k === 'ehp') {
