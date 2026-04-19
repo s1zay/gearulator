@@ -300,13 +300,13 @@ function buildHTMLGrid() {
         html += `
         <div class="gear-card" id="card_${p.id}" onclick="expandCard('${p.id}')">
             <div class="card-header">
-                <span id="title_${p.id}" style="letter-spacing: 1px; transition: all 0.2s;">${p.n}</span>
                 <div class="rank-toggle">
                     <button class="btn-rank" id="btn_rank_5_${p.id}" onclick="event.stopPropagation(); setPieceRank('${p.id}', 5)">5★</button>
                     <button class="btn-rank active" id="btn_rank_6_${p.id}" onclick="event.stopPropagation(); setPieceRank('${p.id}', 6)">6★</button>
                 </div>
+                <span id="title_${p.id}" class="card-title">${p.n}</span>
             </div>
-            <div class="primary-display">${pHTML}<span class="primary-val" id="p_val_${p.id}">+0</span></div>
+            <div class="primary-display">${pHTML}<span class="primary-val" id="p_val_${p.id}">0</span></div>
             <div class="limits-bar" id="limits_${p.id}"><span>Stats: <b id="l_stat_${p.id}">0/4</b></span><span>Rolls: <b id="l_rolls_${p.id}">0/4</b></span></div>
             <div class="sub-stat-list" id="subs_${p.id}"></div>
         </div>`;
@@ -957,7 +957,7 @@ function renderPiece(piece) {
     
     const pValRaw = pVal[pStat][rank][config.t];
     const pSuffix = roll[pStat].p ? "%" : "";
-    document.getElementById(`p_val_${piece}`).innerText = `+${pValRaw}${pSuffix}`;
+    document.getElementById(`p_val_${piece}`).innerText = `${pValRaw}${pSuffix}`;
 
     const lim = state.pieceLimits[piece];
     const mStat = 4;
@@ -973,7 +973,7 @@ function renderPiece(piece) {
 
     let totalHits = Object.values(state.hits[piece]).reduce((a, b) => a + b, 0);
     let titleSpan = document.getElementById(`title_${piece}`);
-    titleSpan.className = ''; 
+    titleSpan.className = 'card-title'; 
     if (totalHits === 9) titleSpan.classList.add('glow-mythic');
     else if (totalHits === 8) titleSpan.classList.add('glow-leggo');
     else if (totalHits === 7) titleSpan.classList.add('glow-epic');
@@ -999,14 +999,14 @@ function renderPiece(piece) {
             
             let rStr = "0";
             if(isAct) {
-                if(mode === 'avg') rStr = `+${Math.round((min+max)/2)}${sSuf}`;
-                else if(mode === 'low') rStr = `+${min}${sSuf}`;
-                else if(mode === 'high') rStr = `+${max}${sSuf}`;
+                if(mode === 'avg') rStr = `${Math.round((min+max)/2)}${sSuf}`;
+                else if(mode === 'low') rStr = `${min}${sSuf}`;
+                else if(mode === 'high') rStr = `${max}${sSuf}`;
                 else if(mode === 'random') {
                     let rSum = state.rollValues[piece][sid].reduce((a,b)=>a+b, 0);
-                    rStr = `+${rSum}${sSuf}`;
+                    rStr = `${rSum}${sSuf}`;
                 }
-                else rStr = `+${min}-${max}${sSuf}`;
+                else rStr = `${min}-${max}${sSuf}`;
             }
 
             const dAdd = (cTot >= mRoll || hits >= mSing);
