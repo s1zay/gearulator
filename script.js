@@ -285,28 +285,13 @@ function buildHTMLGrid() {
     const grid = document.getElementById('mainGrid');
     let html = '';
     gCfg.forEach(p => {
-        let pHTML = '';
-        if (p.po.length > 1) {
-            pHTML = `<select class="primary-select" id="p_sel_${p.id}" onchange="changePrimary('${p.id}', this.value)" onclick="event.stopPropagation()">`;
-            p.po.forEach(opt => {
-                const sel = state.primaries[p.id] === opt ? 'selected' : '';
-                pHTML += `<option value="${opt}" ${sel}>${roll[opt].n}</option>`;
-            });
-            pHTML += `</select>`;
-        } else {
-            pHTML = `<span id="p_name_${p.id}">${roll[p.po[0]].n}</span>`;
-        }
-
         html += `
         <div class="gear-card" id="card_${p.id}" onclick="expandCard('${p.id}')">
             <div class="card-header">
-                <div class="rank-toggle">
-                    <button class="btn-rank" id="btn_rank_5_${p.id}" onclick="event.stopPropagation(); setPieceRank('${p.id}', 5)">5★</button>
-                    <button class="btn-rank active" id="btn_rank_6_${p.id}" onclick="event.stopPropagation(); setPieceRank('${p.id}', 6)">6★</button>
-                </div>
+                <button class="btn-rank" id="btn_rank_${p.id}" onclick="event.stopPropagation(); togglePieceRank('${p.id}')">6★</button>
                 <span id="title_${p.id}" class="card-title">${p.n}</span>
             </div>
-            <div class="primary-display">${pHTML}<span class="primary-val" id="p_val_${p.id}">0</span></div>
+            <div class="primary-display" id="p_disp_${p.id}"></div>
             <div class="limits-bar" id="limits_${p.id}"><span>Stats: <b id="l_stat_${p.id}">0/4</b></span><span>Rolls: <b id="l_rolls_${p.id}">0/4</b></span></div>
             <div class="sub-stat-list" id="subs_${p.id}"></div>
         </div>`;
@@ -320,11 +305,10 @@ function expandCard(id) {
     document.getElementById('card_' + id).classList.toggle('expanded');
     renderPiece(id);
 }
-function setPieceRank(piece, rank) {
-    state.ranks[piece] = rank;
-    document.getElementById(`btn_rank_5_${piece}`).classList.toggle('active', rank === 5);
-    document.getElementById(`btn_rank_6_${piece}`).classList.toggle('active', rank === 6);
-    renderPiece(piece); updateSummary();
+function togglePieceRank(piece) {
+    state.ranks[piece] = state.ranks[piece] === 6 ? 5 : 6;
+    renderPiece(piece);
+    updateSummary();
 }
 function changePrimary(piece, newPrimary) {
     state.primaries[piece] = newPrimary;
@@ -557,7 +541,6 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
 
     let pctRaw = parseFloat(document.getElementById('budgetSlider').value);
     
-    // Exponential curve so lower percentages have drastically higher penalties to discourage stacking
     let penWeight = Math.max(0.001, Math.pow((100 - pctRaw) / 100, 3)); 
     let rollPenalty = 0;
     
@@ -657,7 +640,6 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
             let mutablePieces = gCfg.filter(p => p.po.length > 1);
             let p = mutablePieces[Math.floor(Math.random() * mutablePieces.length)].id;
             
-            // Prevents the primary stat from randomly changing into a stat that is already a substat
             let validPrimaryOptions = gCfg.find(x => x.id === p).po.filter(opt => 
                 opt !== mutatedPris[p] && (!mutatedHits[p][opt] || mutatedHits[p][opt] === 0)
             );
@@ -750,7 +732,6 @@ function rollDice() {
             gCfg.forEach(p => {
                 let pId = p.id;
                 let pPri = state.primaries[pId];
-                // Check current primary stat and remove it from the pool to prevent 3-stat rings!
                 let pOptions = aSub[pId].filter(stat => stat !== pPri); 
                 pOptions = pOptions.sort(() => Math.random() - 0.5);
                 let chosen = pOptions.slice(0, 4);
@@ -957,7 +938,22 @@ function renderPiece(piece) {
     
     const pValRaw = pVal[pStat][rank][config.t];
     const pSuffix = roll[pStat].p ? "%" : "";
-    document.getElementById(`p_val_${piece}`).innerText = `${pValRaw}${pSuffix}`;
+    
+    document.getElementById('btn_rank_' + piece).innerText = rank + '★';
+
+    const pNameRaw = roll[pStat].n.replace('%', '');
+    let pHTML = '';
+    if (config.po.length > 1) {
+        pHTML = `<select class="primary-select" id="p_sel_${piece}" onchange="changePrimary('${piece}', this.value)" onclick="event.stopPropagation()">`;
+        config.po.forEach(opt => {
+            const sel = pStat === opt ? 'selected' : '';
+            pHTML += `<option value="${opt}" ${sel}>${roll[opt].n.replace('%','')}</option>`;
+        });
+        pHTML += `</select>`;
+    } else {
+        pHTML = `<span class="primary-name">${pNameRaw}</span>`;
+    }
+    document.getElementById(`p_disp_${piece}`).innerHTML = `${pHTML}<span class="primary-val">${pValRaw}${pSuffix}</span>`;
 
     const lim = state.pieceLimits[piece];
     const mStat = 4;
@@ -1023,19 +1019,21 @@ function renderPiece(piece) {
             if (isAct && gActive !== "0" && glyphDict[gActive][sid]) {
                 if (rank === 6 || (rank === 5 && gActive === 'green5')) {
                     let gVal = glyphDict[gActive][sid];
-                    gStr = `<span class="glyph-val">[+${gVal}]</span>`;
+                    gStr = `<span class="glyph-val">+${gVal}</span>`;
                 }
             }
 
+            let sNameFormatted = sData.n.replace('%', '');
+
             html += `
                 <div class="sub-row">
-                    <div class="m-info-grid">
+                    <div class="sub-row-top">
                         <label class="stat-toggle">
-                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')">
-                            <span class="sub-label">${sData.n}${rInd}</span>
+                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')" style="${isExp?'':'display:none;'}">
+                            <span class="sub-label">${sNameFormatted}${isExp && rCnt>0 ? ` <span class="roll-ind ${colorCls}">[${rCnt}]</span>`:''}</span>
                         </label>
+                        <div class="sub-val ${colorCls}">${rStr}${!isExp?rInd:''}${gStr}</div>
                     </div>
-                    <div class="sub-val ${colorCls}">${rStr}${gStr}</div>
                     ${isExp ? `
                         <div class="stepper">
                             <button class="btn-step" ${!isAct || rCnt <= 0 ? 'disabled' : ''} onclick="event.stopPropagation(); changeRoll('${piece}', '${sid}', -1)">-</button>

@@ -1,4 +1,4 @@
-:root { --gold: #d4af37; --bg: #1a1a1a; --card: #2d2d2d; --panel: #333; --text: #ffffff; --green: #44ff44; --red: #ff4444; }
+:root { --gold: #d4af37; --bg: #1a1a1a; --card: #262626; --panel: #333; --text: #ffffff; --green: #44ff44; --red: #ff4444; }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; overflow-x: hidden; max-width: 100vw; }
 
@@ -66,59 +66,56 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 /* GRID CSS */
 .gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;}
-.gear-card { background: #262626; border-radius: 8px; border: 1px solid #444; position: relative; cursor: pointer; aspect-ratio: 4 / 5; transition: transform 0.1s; display: flex; flex-direction: column; overflow: hidden;}
+
+/* 4:5 ASPECT RATIO GEAR CARD */
+.gear-card { background: var(--card); border-radius: 6px; border: 1px solid #444; position: relative; cursor: pointer; aspect-ratio: 4 / 5; transition: transform 0.1s; display: flex; flex-direction: column; overflow: hidden; padding: 6px;}
 .gear-card.expanded { grid-column: 1 / -1; cursor: default; aspect-ratio: auto; min-height: 120px; }
 
-.card-header { padding: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; z-index: 2;}
-.card-title { font-size: 0.7em; font-weight: bold; color: #888; text-align: right; text-transform: uppercase; line-height: 1.2; word-wrap: break-word; flex-grow: 1; margin-left: 5px; letter-spacing: 1px;}
-.rank-toggle { display: flex; background: #111; border-radius: 4px; overflow: hidden; border: 1px solid #444; z-index: 2; flex-shrink: 0;}
-.btn-rank { background: transparent; color: #888; border: none; padding: 2px 6px; font-size: 0.8em; cursor: pointer; font-weight: bold; }
-.btn-rank.active { background: var(--gold); color: black; }
+/* TOP HEADER ROW */
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2px; z-index: 2;}
+.btn-rank { background: #1a1a1a; border: 1px solid #555; color: var(--gold); border-radius: 4px; font-weight: bold; cursor: pointer; padding: 2px 6px; font-size: 0.85em; line-height: 1; flex-shrink: 0; transition: background 0.1s;}
+.btn-rank:active { background: var(--gold); color: black; }
+.card-title { font-size: 0.65em; font-weight: bold; color: #888; text-align: right; text-transform: uppercase; line-height: 1.1; width: 55%; word-wrap: break-word;}
 
-.primary-display { padding: 4px; text-align: center; color: var(--gold); font-weight: bold; font-size: 0.9em; flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 2;}
-.primary-select { background: #111; color: var(--gold); border: 1px solid #555; border-radius: 4px; padding: 2px; font-weight: bold; font-size: 0.9em; width: 95%; text-align: center; margin-bottom: 4px;}
-.primary-val { font-size: 1.1em; display: block; }
+/* PRIMARY STAT ROW */
+.primary-display { display: flex; justify-content: space-between; align-items: center; color: var(--gold); font-weight: bold; font-size: 1.05em; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; margin-bottom: 4px; z-index: 2;}
+.primary-select { background: #111; color: var(--gold); border: 1px solid #555; border-radius: 4px; font-weight: bold; font-size: 0.9em; padding: 1px 4px; max-width: 60%; cursor: pointer;}
+.primary-val { font-size: 1em; }
+.primary-name { font-size: 0.95em; }
 
-.limits-bar { display: none; background: #111; color: #aaa; font-size: 0.65em; text-align: center; padding: 4px; border-bottom: 1px solid #333; z-index: 2;}
-.expanded .limits-bar { display: flex; justify-content: space-around; }
+.limits-bar { display: none; }
 
-.sub-stat-list { padding: 2px 6px 4px 6px; font-size: 0.65em; display: flex; flex-direction: column; justify-content: flex-end; position: relative; z-index: 2; min-height: 40%;}
+/* SUBSTAT LIST */
+.sub-stat-list { display: flex; flex-direction: column; justify-content: flex-start; flex-grow: 1; position: relative; z-index: 2;}
 
-.sub-row { display: flex; margin-bottom: 3px; background: rgba(0,0,0,0.4); border-radius: 4px; }
+.sub-row { display: flex; justify-content: space-between; align-items: center; background: transparent; font-size: 0.85em; margin-bottom: 2px; line-height: 1.1; }
+.sub-label { color: #ccc; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px;}
+.sub-val { font-family: monospace; font-size: 1.05em; font-weight: 900; letter-spacing: -0.5px; text-align: right; display: flex; align-items: center;}
 
-.gear-card:not(.expanded) .sub-row { flex-direction: column; align-items: center; justify-content: center; padding: 3px 2px; gap: 1px; }
-.gear-card:not(.expanded) .stat-toggle input { display: none; }
-.gear-card:not(.expanded) .sub-val { text-align: center; font-size: 0.85em; letter-spacing: -0.5px; }
-.gear-card:not(.expanded) .sub-label { font-size: 0.95em; letter-spacing: -0.2px; }
-
-.gear-card.expanded .sub-row { flex-direction: row; justify-content: space-between; align-items: center; padding: 4px 8px; margin-bottom: 6px;}
-.gear-card.expanded .sub-val { text-align: right; flex-grow: 1; padding-right: 10px; font-size: 1.2em;}
-.gear-card.expanded .sub-label { font-size: 1.2em; }
-
-.m-info-grid { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex-shrink: 1; }
-.stat-toggle { display: flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.95em; }
-.stat-toggle input { margin: 0; width: 12px; height: 12px; accent-color: var(--gold); flex-shrink: 0;}
+/* EXPANDED VIEW OVERRIDES */
+.gear-card.expanded .sub-row { flex-direction: column; align-items: stretch; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 4px; gap: 6px; margin-bottom: 6px;}
+.gear-card.expanded .sub-row-top { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 1.1em;}
+.stat-toggle { display: flex; align-items: center; gap: 6px; cursor: pointer; margin: 0;}
+.stat-toggle input { margin: 0; width: 14px; height: 14px; accent-color: var(--gold); flex-shrink: 0;}
 .stat-toggle input:disabled { opacity: 0.3; cursor: not-allowed;}
 
-.sub-label { color: #ccc; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sub-val { font-weight: bold; white-space: nowrap; }
-
-.stepper { display: flex; align-items: center; gap: 8px; margin-top: 0; }
-.btn-step { background: #444; border: none; color: white; width: 24px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.stepper { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.btn-step { background: #444; border: none; color: white; width: 28px; height: 24px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1em;}
 .btn-step:disabled { opacity: 0.2; cursor: not-allowed; }
-.hit-count { min-width: 15px; text-align: center; font-weight: bold; }
+.hit-count { min-width: 20px; text-align: center; font-weight: bold; font-size: 1.1em;}
 
+/* HIT COLORS & GLOWS */
 .hit-mythic { color: #ff4444 !important; }
 .hit-leggo { color: var(--gold) !important; }
 .hit-epic { color: #b388ff !important; }
 .hit-default { color: #ffffff !important; }
 
-.glow-mythic { color: #ff4444; text-shadow: 0 0 8px rgba(255, 68, 68, 0.7); }
-.glow-leggo { color: var(--gold); text-shadow: 0 0 8px rgba(212, 175, 55, 0.7); }
-.glow-epic { color: #b388ff; text-shadow: 0 0 8px rgba(179, 136, 255, 0.7); }
+.glow-mythic { color: #ff4444 !important; text-shadow: 0 0 8px rgba(255, 68, 68, 0.7); }
+.glow-leggo { color: var(--gold) !important; text-shadow: 0 0 8px rgba(212, 175, 55, 0.7); }
+.glow-epic { color: #b388ff !important; text-shadow: 0 0 8px rgba(179, 136, 255, 0.7); }
 
-.roll-ind { font-size: 0.9em; margin-left: 2px; font-family: monospace; font-weight: 900;}
-.glyph-val { color: var(--green); margin-left: 3px; font-weight: bold; }
+.roll-ind { color: inherit; margin: 0; font-family: monospace; font-weight: 900;}
+.glyph-val { color: var(--green); margin: 0; font-weight: 900; }
 
 /* ADVANCED SUMMARY CSS */
 .summary-wrapper { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 6px;}
@@ -135,28 +132,11 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 /* DMG BALANCE ROW FORMATTING */
 .sum-ranges.balance-row, .sum-goal.balance-row { display: none; }
-
-/* This locks all the font specs to be perfectly identical and cyan */
 .sum-label.balance-row, .sum-final.balance-row {
-    color: #00ffff !important;
-    font-family: monospace !important;
-    font-size: 1.05em !important;
-    font-weight: 900 !important;
-    letter-spacing: -0.5px !important;
-    white-space: nowrap;
+    color: #00ffff !important; font-family: monospace !important; font-size: 1.05em !important; font-weight: 900 !important; letter-spacing: -0.5px !important; white-space: nowrap;
 }
-
-.sum-label.balance-row { 
-    grid-column: 1 / 3; 
-    text-align: right; 
-    padding-right: 10px; /* Aligns exactly with the colons above */
-}
-
-.sum-final.balance-row { 
-    grid-column: 3 / 5; 
-    text-align: left; 
-    padding-left: 0; /* Removes the gap entirely, text hugs the pipe */
-}
+.sum-label.balance-row { grid-column: 1 / 3; text-align: right; padding-right: 10px; }
+.sum-final.balance-row { grid-column: 3 / 5; text-align: left; padding-left: 0; }
 
 .override-btn { background:#444; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.75em; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.2s; }
 .override-btn.active { background:var(--gold); color:#000; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);}
@@ -168,7 +148,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px; width: 100%; } 
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
-    .primary-display { font-size: 0.8em; }
     
     .summary-grid { max-width: 100%; grid-template-columns: 1fr auto 75px 50px; gap: 4px; }
     .sum-ranges { font-size: 0.85em; letter-spacing: -0.8px;}
