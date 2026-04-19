@@ -1029,7 +1029,7 @@ function renderPiece(piece) {
                 <div class="sub-row">
                     <div class="sub-row-top">
                         <label class="stat-toggle">
-                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')" style="${isExp?'':'display:none;'}">
+                            <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')">
                             <span class="sub-label">${sNameFormatted}${isExp && rCnt>0 ? ` <span class="roll-ind ${colorCls}">[${rCnt}]</span>`:''}</span>
                         </label>
                         <div class="sub-val ${colorCls}">${rStr}${!isExp?rInd:''}${gStr}</div>
@@ -1326,12 +1326,12 @@ function updateSummary() {
                 lStr = `DMG Balance: Add ${targetStat - totalStat} ${statKey.toUpperCase()} |`;
                 tStr = `Drop ${totalCd - targetCd}% C. DMG`;
             } else {
-                lStr = `DMG Balance: |`;
+                lStr = `DMG Balance:`;
                 tStr = "Perfectly Balanced";
             }
         }
 
-        // math is left empty because we are putting everything into the merged label column
+        // Send 'balance' specific data to rendering
         rows.push({ k: 'balance', l: lStr, v: { math: '', total: tStr } });
     }
 
@@ -1344,13 +1344,22 @@ function updateSummary() {
     
     rows.forEach(r => { 
         let gVal = userGoals[r.k] !== undefined ? userGoals[r.k] : '';
-        let extraClass = r.k === 'ehp' ? 'ehp-row' : (r.k === 'balance' ? 'balance-row' : '');
         let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
-        html += `<div class="sum-ranges ${extraClass}">${r.v.math}</div>
-                 <div class="sum-label ${extraClass}">${r.l}</div>
-                 <div class="sum-final ${extraClass}">${r.v.total}</div>
-                 <div class="sum-goal ${extraClass}"><input type="number" value="${gVal}" placeholder="-" ${inputDisabled} oninput="saveUserGoal('${r.k}', this.value)"></div>`; 
+        // This specifically intercepts the DMG balance row and formats it cleanly across the whole table width
+        if (r.k === 'balance') {
+            html += `<div style="grid-column: 1 / -1; text-align: center; color: #00ffff; font-family: monospace; font-size: 1.05em; font-weight: 900; margin-top: 5px;">${r.l} ${r.v.total}</div>`;
+        } else if (r.k === 'ehp') {
+            html += `<div class="sum-ranges ehp-row">${r.v.math}</div>
+                     <div class="sum-label ehp-row">${r.l}</div>
+                     <div class="sum-final ehp-row">${r.v.total}</div>
+                     <div class="sum-goal ehp-row"><input type="number" value="${gVal}" placeholder="-" disabled></div>`;
+        } else {
+            html += `<div class="sum-ranges">${r.v.math}</div>
+                     <div class="sum-label">${r.l}</div>
+                     <div class="sum-final">${r.v.total}</div>
+                     <div class="sum-goal"><input type="number" value="${gVal}" placeholder="-" ${inputDisabled} oninput="saveUserGoal('${r.k}', this.value)"></div>`; 
+        }
     });
     document.getElementById('summaryOutput').innerHTML = html;
 }
