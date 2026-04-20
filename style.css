@@ -97,12 +97,12 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 .sub-row { display: flex; width: 100%; background: transparent; line-height: 1; }
 
-/* COLLAPSED VIEW - UPDATED GRID AND FONT SIZES TO FIX WRAPPING */
+/* COLLAPSED VIEW - EXTREME SHRINK & SHIFTED GRID TO FIX WRAPPING */
 .gear-card:not(.expanded) .sub-row { margin-bottom: 0; }
-.gear-card:not(.expanded) .sub-row-top { display: grid; grid-template-columns: 44% 56%; align-items: baseline; width: 100%; gap: 3px; }
+.gear-card:not(.expanded) .sub-row-top { display: grid; grid-template-columns: 42% 58%; align-items: baseline; width: 100%; gap: 2px; }
 .gear-card:not(.expanded) .stat-toggle input { display: none; }
-.gear-card:not(.expanded) .sub-label { font-size: 0.75em; color: #ccc; font-weight: bold; text-align: right; margin: 0; white-space: nowrap; letter-spacing: -0.3px;}
-.gear-card:not(.expanded) .sub-val { font-family: monospace; font-size: 0.82em; font-weight: 900; text-align: left; margin: 0; letter-spacing: -0.7px; white-space: nowrap;}
+.gear-card:not(.expanded) .sub-label { font-size: 0.7em; color: #ccc; font-weight: bold; text-align: right; margin: 0; white-space: nowrap; letter-spacing: -0.4px;}
+.gear-card:not(.expanded) .sub-val { font-family: monospace; font-size: 0.76em; font-weight: 900; text-align: left; margin: 0; letter-spacing: -0.8px; white-space: nowrap;}
 
 /* EXPANDED VIEW */
 .gear-card.expanded .sub-row { flex-direction: column; align-items: stretch; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 4px; gap: 6px; margin-bottom: 6px;}
@@ -128,8 +128,8 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .glow-leggo { color: var(--gold) !important; text-shadow: 0 0 8px rgba(212, 175, 55, 0.7); }
 .glow-epic { color: var(--purple) !important; text-shadow: 0 0 8px rgba(179, 136, 255, 0.7); }
 
-.roll-ind { color: inherit; margin: 0; font-family: monospace; font-weight: 900;}
-.glyph-val { color: var(--green); margin: 0; font-weight: 900; }
+.roll-ind { color: inherit; margin: 0; font-family: monospace; font-weight: 900; font-size: 0.95em;}
+.glyph-val { color: var(--green); margin: 0; font-weight: 900; font-size: 0.95em;}
 
 /* ADVANCED SUMMARY CSS */
 .summary-wrapper { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 6px;}
@@ -152,8 +152,8 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; margin-bottom: 15px; width: 100%; } 
-    .gear-card { padding: 4px; } 
+    .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 15px; width: 100%; } 
+    .gear-card { padding: 3px; } 
     
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
     

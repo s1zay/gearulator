@@ -29,7 +29,7 @@ const utilityPrimaries = {
     'Custom':    { GAU: 'cd', CHE: 'atkP', BOO: 'spd', RIN: 'atk', AMU: 'cd', BAN: 'atk' }
 };
 
-/* ASCENSION DICTIONARIES (Rank AND Piece Type Aware) */
+/* ASCENSION DICTIONARIES */
 const ascVals = {
     hp:   { AR: { 5: 870, 6: 1224 }, AC: { 5: 870, 6: 1224 } },
     hpP:  { AR: { 5: 13, 6: 20 }, AC: { 5: 0, 6: 0 } },
@@ -54,7 +54,6 @@ const ascPool = {
     BAN: ['hp','atk','def','acc','res','spd'] 
 };
 
-/* Strictly matches available stats per slot based on the updated table */
 const utilityAscensions = {
     'ATK Nuker': { WEA:'atk', HEL:'hp', SHI:'def', GAU:'cd', CHE:'atkP', BOO:'spd', RIN:'atk', AMU:'cd', BAN:'atk' },
     'DEF Nuker': { WEA:'def', HEL:'hp', SHI:'def', GAU:'cd', CHE:'defP', BOO:'spd', RIN:'def', AMU:'cd', BAN:'def' },
@@ -1117,13 +1116,13 @@ function renderPiece(piece) {
             else if(hits === 5) colorCls = "hit-leggo";
             else if(hits === 4) colorCls = "hit-epic";
 
-            let rInd = (!isExp && rCnt > 0) ? `<span class="roll-ind ${colorCls}"> [${rCnt}]</span>` : '';
+            let rInd = (!isExp && rCnt > 0) ? `<span class="roll-ind ${colorCls}">[${rCnt}]</span>` : '';
 
             let gStr = '';
             if (isAct && gActive !== "0" && glyphDict[gActive][sid]) {
                 if (rank === 6 || (rank === 5 && gActive === 'green5')) {
                     let gVal = glyphDict[gActive][sid];
-                    gStr = `<span class="glyph-val">+${gVal}</span>`;
+                    gStr = `<span class="glyph-val">+${gVal}${sSuf}</span>`;
                 }
             }
 
@@ -1136,7 +1135,7 @@ function renderPiece(piece) {
                             <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')" style="${isExp?'':'display:none;'}">
                             <span class="sub-label">${sNameFormatted}${isExp && rCnt>0 ? ` <span class="roll-ind ${colorCls}">[${rCnt}]</span>`:''}</span>
                         </label>
-                        <div class="sub-val ${colorCls}">${rStr}${gStr}${rInd}</div>
+                        <div class="sub-val ${colorCls}">${rStr}${rInd}${gStr}</div>
                     </div>
                     ${isExp ? `
                         <div class="stepper">
