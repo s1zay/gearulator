@@ -64,10 +64,10 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .m-title { font-weight: bold; color: #eee; }
 .m-stat { color: var(--gold); font-size: 0.9em; }
 
-/* GRID CSS - ADDED MAX WIDTH & CENTERING FOR DESKTOP */
-.gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto 10px auto; width: 100%; max-width: 550px;}
+/* GRID CSS */
+.gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;}
 
-/* 3:4 ASPECT RATIO GEAR CARD */
+/* 3:4 ASPECT RATIO GEAR CARD (BASE FOR MOBILE LANDSCAPE) */
 .gear-card { background: var(--card); border-radius: 6px; border: 1px solid #444; position: relative; cursor: pointer; aspect-ratio: 3 / 4; transition: transform 0.1s; display: flex; flex-direction: column; overflow: hidden; padding: 6px;}
 .gear-card.expanded { grid-column: 1 / -1; cursor: default; aspect-ratio: auto; min-height: 120px; }
 
@@ -97,7 +97,7 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 .sub-row { display: flex; width: 100%; background: transparent; line-height: 1; }
 
-/* COLLAPSED VIEW - EXTREME SHRINK & SHIFTED GRID TO FIX WRAPPING */
+/* COLLAPSED VIEW - EXTREME SHRINK (BASE FOR MOBILE) */
 .gear-card:not(.expanded) .sub-row { margin-bottom: 0; }
 .gear-card:not(.expanded) .sub-row-top { display: grid; grid-template-columns: 42% 58%; align-items: baseline; width: 100%; gap: 2px; }
 .gear-card:not(.expanded) .stat-toggle input { display: none; }
@@ -147,12 +147,13 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .override-btn { background:#444; color:white; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:0.75em; cursor:pointer; text-transform:uppercase; letter-spacing:0.5px; transition:all 0.2s; }
 .override-btn.active { background:var(--gold); color:#000; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);}
 
-/* MOBILE OVERRIDES (STRICTLY PORTRAIT) */
+/* =========================================
+   MOBILE PORTRAIT OVERRIDES 
+   ========================================= */
 @media (max-width: 800px) and (orientation: portrait) { 
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    /* RESET MAX-WIDTH AND MARGINS FOR MOBILE GRID */
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
     
@@ -163,4 +164,42 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .sum-label { font-size: 0.9em; padding: 0 4px; min-width: auto;}
     .sum-final { font-size: 0.95em; }
     .sum-goal input { font-size: 0.85em; padding: 2px; }
+}
+
+/* =========================================
+   DESKTOP SPECIFIC OVERRIDES 
+   Forces natural height (no bottom gap) and larger text
+   ========================================= */
+@media (min-width: 1025px) {
+    .gear-grid { gap: 15px; margin-bottom: 15px; }
+    
+    /* Auto aspect ratio kills the bottom empty space! */
+    .gear-card { aspect-ratio: auto; padding: 12px; } 
+
+    .card-title { font-size: 0.8em; letter-spacing: 0; }
+    .btn-rank { font-size: 1em; padding: 3px 8px; }
+
+    .primary-display { padding-bottom: 4px; margin-bottom: 4px; gap: 8px; }
+    .primary-val { font-size: 1.4em; }
+    .primary-name { font-size: 0.9em; }
+    .primary-select { font-size: 0.85em; padding: 4px; }
+
+    .ascension-display { padding-bottom: 4px; margin-bottom: 6px; gap: 6px; }
+    .asc-val { font-size: 1em; }
+    .asc-name { font-size: 0.8em; }
+    .asc-select { font-size: 0.8em; padding: 4px; }
+
+    /* Spread the substats comfortably */
+    .gear-card:not(.expanded) .sub-row-top { grid-template-columns: 45% 55%; gap: 6px; margin-bottom: 4px; }
+    .gear-card:not(.expanded) .sub-label { font-size: 0.85em; letter-spacing: normal; }
+    .gear-card:not(.expanded) .sub-val { font-size: 0.95em; letter-spacing: -0.5px; }
+
+    .roll-ind, .glyph-val { font-size: 1em; }
+
+    /* Make the expanded edit mode bigger to match */
+    .gear-card.expanded .sub-row-top { font-size: 1.25em; margin-bottom: 8px;}
+    .gear-card.expanded .sub-label { font-size: 0.9em; }
+    .gear-card.expanded .sub-val { font-size: 1.1em; }
+    .btn-step { width: 34px; height: 30px; font-size: 1.2em;}
+    .hit-count { font-size: 1.2em; }
 }
