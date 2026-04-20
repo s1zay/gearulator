@@ -1117,7 +1117,7 @@ function renderPiece(piece) {
             else if(hits === 5) colorCls = "hit-leggo";
             else if(hits === 4) colorCls = "hit-epic";
 
-            let rInd = (!isExp && rCnt > 0) ? `<span class="roll-ind ${colorCls}">[${rCnt}]</span>` : '';
+            let rInd = (!isExp && rCnt > 0) ? `<span class="roll-ind ${colorCls}"> [${rCnt}]</span>` : '';
 
             let gStr = '';
             if (isAct && gActive !== "0" && glyphDict[gActive][sid]) {
@@ -1136,7 +1136,7 @@ function renderPiece(piece) {
                             <input type="checkbox" ${isAct ? 'checked' : ''} ${dChk ? 'disabled' : ''} onclick="event.stopPropagation(); toggleStatBox('${piece}', '${sid}')" style="${isExp?'':'display:none;'}">
                             <span class="sub-label">${sNameFormatted}${isExp && rCnt>0 ? ` <span class="roll-ind ${colorCls}">[${rCnt}]</span>`:''}</span>
                         </label>
-                        <div class="sub-val ${colorCls}">${rStr}${!isExp?rInd:''}${gStr}</div>
+                        <div class="sub-val ${colorCls}">${rStr}${gStr}${rInd}</div>
                     </div>
                     ${isExp ? `
                         <div class="stepper">
