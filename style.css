@@ -154,7 +154,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    /* RESET MAX-WIDTH AND MARGINS FOR MOBILE GRID */
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
     

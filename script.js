@@ -1455,14 +1455,14 @@ function updateSummary() {
             let targetStat = Math.round(baseStat + (baseStat * cdRatio));
             
             if (statRatio > cdRatio + 0.02) {
-                lStr = `DMG Balance: Add ${targetCd - totalCd}% C. DMG |`;
-                tStr = `Drop ${totalStat - targetStat} ${statKey.toUpperCase()}`;
+                lStr = `Balance: +${targetCd - totalCd}% C.DMG |`;
+                tStr = `-${totalStat - targetStat} ${statKey.toUpperCase()}`;
             } else if (cdRatio > statRatio + 0.02) {
-                lStr = `DMG Balance: Add ${targetStat - totalStat} ${statKey.toUpperCase()} |`;
-                tStr = `Drop ${totalCd - targetCd}% C. DMG`;
+                lStr = `Balance: +${targetStat - totalStat} ${statKey.toUpperCase()} |`;
+                tStr = `-${totalCd - targetCd}% C.DMG`;
             } else {
-                lStr = `DMG Balance:`;
-                tStr = "Perfectly Balanced";
+                lStr = `Balance:`;
+                tStr = "Perfect";
             }
         }
 
@@ -1482,7 +1482,7 @@ function updateSummary() {
         let inputDisabled = (isCustom || overrideGoalsActive) && r.k !== 'ehp' && r.k !== 'balance' ? '' : 'disabled';
         
         if (r.k === 'balance') {
-            html += `<div style="grid-column: 1 / -1; text-align: center; color: #00ffff; font-family: monospace; font-size: 1.05em; font-weight: 900; margin-top: 5px;">${r.l} ${r.v.total}</div>`;
+            html += `<div style="grid-column: 1 / -1; text-align: center; color: #00ffff; font-family: monospace; font-size: 1.0em; font-weight: 900; margin-top: 5px; white-space: nowrap; letter-spacing: -0.5px;">${r.l} ${r.v.total}</div>`;
         } else if (r.k === 'ehp') {
             html += `<div class="sum-ranges ehp-row">${r.v.math}</div>
                      <div class="sum-label ehp-row">${r.l}</div>
