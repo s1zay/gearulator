@@ -140,6 +140,10 @@ const setDB = {
 };
 
 function initSystem() {
+    // FORCE GLOBALS OFF ON PAGE LOAD
+    let gh = document.getElementById('ghToggle'); if(gh) gh.checked = false;
+    let fg = document.getElementById('fgToggle'); if(fg) fg.checked = false;
+
     gCfg.forEach(p => {
         state.ranks[p.id] = 6; 
         state.ascensions[p.id] = 'none';
@@ -469,6 +473,19 @@ function updateGlobal() {
 }
 
 function resetSubstats() {
+    // 1. TURN OFF ALL GLOBAL MODIFIERS
+    let gh = document.getElementById('ghToggle'); if(gh) gh.checked = false;
+    let fg = document.getElementById('fgToggle'); if(fg) fg.checked = false;
+    
+    let glyph = document.getElementById('glyphSelect'); if(glyph) glyph.value = "0";
+    let ign = document.getElementById('ignoreDefSelect'); if(ign) ign.value = "0";
+    let awk = document.getElementById('awkSelect'); if(awk) awk.value = "0";
+
+    // 2. UNCHECK ALL MASTERIES
+    document.querySelectorAll('.m-check').forEach(c => c.checked = false);
+    mUpdate(); // Visually updates the mastery tree colors/locks
+
+    // 3. CLEAR ALL GEAR ROLLS
     gCfg.forEach(p => {
         Object.keys(state.hits[p.id]).forEach(k => {
             state.hits[p.id][k] = 0;
@@ -476,33 +493,37 @@ function resetSubstats() {
         });
         renderPiece(p.id);
     });
+
+    // We do NOT touch the Champ Select or Active Sets.
+
+    // 4. RECALCULATE THE SUMMARY
     updateSummary();
 }
 
 function evaluateStats(activeHits, currentPrimaries = state.primaries) {
     let t = { hp: [0,0], hpP: [0,0], atk: [0,0], atkP: [0,0], def: [0,0], defP: [0,0], spd: [0,0], spdP: [0,0], cr: [0,0], cd: [0,0], acc: [0,0], res: [0,0], ign: [0,0] };
 
-    if(document.getElementById('ghToggle').checked) { 
+    if(document.getElementById('ghToggle') && document.getElementById('ghToggle').checked) { 
         t.hpP[0]+=20; t.hpP[1]+=20; t.atkP[0]+=20; t.atkP[1]+=20; t.defP[0]+=20; t.defP[1]+=20; 
         t.cd[0]+=25; t.cd[1]+=25; t.acc[0]+=80; t.acc[1]+=80; t.res[0]+=80; t.res[1]+=80; 
     }
-    if(document.getElementById('fgToggle').checked) {
+    if(document.getElementById('fgToggle') && document.getElementById('fgToggle').checked) {
         t.hpP[0]+=20; t.hpP[1]+=20; t.atkP[0]+=20; t.atkP[1]+=20; t.defP[0]+=20; t.defP[1]+=20;
         t.spdP[0]+=10; t.spdP[1]+=10;
     }
     
-    if(document.getElementById('m_blade').checked) { t.atk[0]+=75; t.atk[1]+=75; }
-    if(document.getElementById('m_deadly').checked) { t.cr[0]+=5; t.cr[1]+=5; }
-    if(document.getElementById('m_keen').checked) { t.cd[0]+=10; t.cd[1]+=10; }
-    if(document.getElementById('m_flawless').checked) { t.cd[0]+=20; t.cd[1]+=20; }
-    if(document.getElementById('m_tough').checked) { t.def[0]+=75; t.def[1]+=75; }
-    if(document.getElementById('m_defiant').checked) { t.res[0]+=10; t.res[1]+=10; }
-    if(document.getElementById('m_iron').checked) { t.def[0]+=200; t.def[1]+=200; }
-    if(document.getElementById('m_unshakable').checked) { t.res[0]+=50; t.res[1]+=50; }
-    if(document.getElementById('m_steadfast').checked) { t.hp[0]+=810; t.hp[1]+=810; }
-    if(document.getElementById('m_pinpoint').checked) { t.acc[0]+=10; t.acc[1]+=10; }
-    if(document.getElementById('m_elixir').checked) { t.hp[0]+=3000; t.hp[1]+=3000; }
-    if(document.getElementById('m_eagle').checked) { t.acc[0]+=50; t.acc[1]+=50; }
+    if(document.getElementById('m_blade') && document.getElementById('m_blade').checked) { t.atk[0]+=75; t.atk[1]+=75; }
+    if(document.getElementById('m_deadly') && document.getElementById('m_deadly').checked) { t.cr[0]+=5; t.cr[1]+=5; }
+    if(document.getElementById('m_keen') && document.getElementById('m_keen').checked) { t.cd[0]+=10; t.cd[1]+=10; }
+    if(document.getElementById('m_flawless') && document.getElementById('m_flawless').checked) { t.cd[0]+=20; t.cd[1]+=20; }
+    if(document.getElementById('m_tough') && document.getElementById('m_tough').checked) { t.def[0]+=75; t.def[1]+=75; }
+    if(document.getElementById('m_defiant') && document.getElementById('m_defiant').checked) { t.res[0]+=10; t.res[1]+=10; }
+    if(document.getElementById('m_iron') && document.getElementById('m_iron').checked) { t.def[0]+=200; t.def[1]+=200; }
+    if(document.getElementById('m_unshakable') && document.getElementById('m_unshakable').checked) { t.res[0]+=50; t.res[1]+=50; }
+    if(document.getElementById('m_steadfast') && document.getElementById('m_steadfast').checked) { t.hp[0]+=810; t.hp[1]+=810; }
+    if(document.getElementById('m_pinpoint') && document.getElementById('m_pinpoint').checked) { t.acc[0]+=10; t.acc[1]+=10; }
+    if(document.getElementById('m_elixir') && document.getElementById('m_elixir').checked) { t.hp[0]+=3000; t.hp[1]+=3000; }
+    if(document.getElementById('m_eagle') && document.getElementById('m_eagle').checked) { t.acc[0]+=50; t.acc[1]+=50; }
 
     const gActive = document.getElementById('glyphSelect').value;
 
@@ -1183,7 +1204,7 @@ function mUpdate() {
 function updateSummary() {
     let t = { hp: [0,0,0], hpP: [0,0,0], atk: [0,0,0], atkP: [0,0,0], def: [0,0,0], defP: [0,0,0], spd: [0,0,0], spdP: [0,0,0], cr: [0,0,0], cd: [0,0,0], acc: [0,0,0], res: [0,0,0], ign: [0,0,0] };
 
-    if(document.getElementById('ghToggle').checked) { 
+    if(document.getElementById('ghToggle') && document.getElementById('ghToggle').checked) { 
         t.hpP[0]+=20; t.hpP[1]+=20; t.hpP[2]+=20; 
         t.atkP[0]+=20; t.atkP[1]+=20; t.atkP[2]+=20;
         t.defP[0]+=20; t.defP[1]+=20; t.defP[2]+=20; 
@@ -1191,7 +1212,7 @@ function updateSummary() {
         t.acc[0]+=80; t.acc[1]+=80; t.acc[2]+=80;
         t.res[0]+=80; t.res[1]+=80; t.res[2]+=80;
     }
-    if(document.getElementById('fgToggle').checked) {
+    if(document.getElementById('fgToggle') && document.getElementById('fgToggle').checked) {
         t.hpP[0]+=20; t.hpP[1]+=20; t.hpP[2]+=20;
         t.atkP[0]+=20; t.atkP[1]+=20; t.atkP[2]+=20;
         t.defP[0]+=20; t.defP[1]+=20; t.defP[2]+=20;
@@ -1199,18 +1220,18 @@ function updateSummary() {
     }
     
     let applyMastery = (stat, val) => { t[stat][0]+=val; t[stat][1]+=val; t[stat][2]+=val; };
-    if(document.getElementById('m_blade').checked) applyMastery('atk', 75);
-    if(document.getElementById('m_deadly').checked) applyMastery('cr', 5);
-    if(document.getElementById('m_keen').checked) applyMastery('cd', 10);
-    if(document.getElementById('m_flawless').checked) applyMastery('cd', 20);
-    if(document.getElementById('m_tough').checked) applyMastery('def', 75);
-    if(document.getElementById('m_defiant').checked) applyMastery('res', 10);
-    if(document.getElementById('m_iron').checked) applyMastery('def', 200);
-    if(document.getElementById('m_unshakable').checked) applyMastery('res', 50);
-    if(document.getElementById('m_steadfast').checked) applyMastery('hp', 810);
-    if(document.getElementById('m_pinpoint').checked) applyMastery('acc', 10);
-    if(document.getElementById('m_elixir').checked) applyMastery('hp', 3000);
-    if(document.getElementById('m_eagle').checked) applyMastery('acc', 50);
+    if(document.getElementById('m_blade') && document.getElementById('m_blade').checked) applyMastery('atk', 75);
+    if(document.getElementById('m_deadly') && document.getElementById('m_deadly').checked) applyMastery('cr', 5);
+    if(document.getElementById('m_keen') && document.getElementById('m_keen').checked) applyMastery('cd', 10);
+    if(document.getElementById('m_flawless') && document.getElementById('m_flawless').checked) applyMastery('cd', 20);
+    if(document.getElementById('m_tough') && document.getElementById('m_tough').checked) applyMastery('def', 75);
+    if(document.getElementById('m_defiant') && document.getElementById('m_defiant').checked) applyMastery('res', 10);
+    if(document.getElementById('m_iron') && document.getElementById('m_iron').checked) applyMastery('def', 200);
+    if(document.getElementById('m_unshakable') && document.getElementById('m_unshakable').checked) applyMastery('res', 50);
+    if(document.getElementById('m_steadfast') && document.getElementById('m_steadfast').checked) applyMastery('hp', 810);
+    if(document.getElementById('m_pinpoint') && document.getElementById('m_pinpoint').checked) applyMastery('acc', 10);
+    if(document.getElementById('m_elixir') && document.getElementById('m_elixir').checked) applyMastery('hp', 3000);
+    if(document.getElementById('m_eagle') && document.getElementById('m_eagle').checked) applyMastery('acc', 50);
 
     const gActive = document.getElementById('glyphSelect').value;
 
