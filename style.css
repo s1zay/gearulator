@@ -64,8 +64,8 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .m-title { font-weight: bold; color: #eee; }
 .m-stat { color: var(--gold); font-size: 0.9em; }
 
-/* GRID CSS */
-.gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; width: 100%;}
+/* GRID CSS - ADDED MAX WIDTH & CENTERING FOR DESKTOP */
+.gear-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0 auto 10px auto; width: 100%; max-width: 550px;}
 
 /* 3:4 ASPECT RATIO GEAR CARD */
 .gear-card { background: var(--card); border-radius: 6px; border: 1px solid #444; position: relative; cursor: pointer; aspect-ratio: 3 / 4; transition: transform 0.1s; display: flex; flex-direction: column; overflow: hidden; padding: 6px;}
@@ -152,7 +152,8 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 15px; width: 100%; } 
+    /* RESET MAX-WIDTH AND MARGINS FOR MOBILE GRID */
+    .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
     
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
