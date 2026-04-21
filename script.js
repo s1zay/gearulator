@@ -338,17 +338,7 @@ function buildHTMLGrid() {
     grid.innerHTML = html;
 }
 
-// Function updated to handle both body collapse AND header arrow rotation
-function toggleSection(id) { 
-    let el = document.getElementById(id);
-    if(el) {
-        el.classList.toggle('collapsed'); 
-        if (el.previousElementSibling && el.previousElementSibling.classList.contains('card-header')) {
-            el.previousElementSibling.classList.toggle('collapsed');
-        }
-    }
-}
-
+function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
 function expandCard(id) {
     if(event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON' || event.target.tagName === 'SELECT') return;
     document.getElementById('card_' + id).classList.toggle('expanded');
