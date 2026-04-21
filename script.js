@@ -140,7 +140,6 @@ const setDB = {
 };
 
 function initSystem() {
-    // FORCE GLOBALS OFF ON PAGE LOAD
     let gh = document.getElementById('ghToggle'); if(gh) gh.checked = false;
     let fg = document.getElementById('fgToggle'); if(fg) fg.checked = false;
 
@@ -473,7 +472,6 @@ function updateGlobal() {
 }
 
 function resetSubstats() {
-    // 1. TURN OFF ALL GLOBAL MODIFIERS
     let gh = document.getElementById('ghToggle'); if(gh) gh.checked = false;
     let fg = document.getElementById('fgToggle'); if(fg) fg.checked = false;
     
@@ -481,11 +479,9 @@ function resetSubstats() {
     let ign = document.getElementById('ignoreDefSelect'); if(ign) ign.value = "0";
     let awk = document.getElementById('awkSelect'); if(awk) awk.value = "0";
 
-    // 2. UNCHECK ALL MASTERIES
     document.querySelectorAll('.m-check').forEach(c => c.checked = false);
-    mUpdate(); // Visually updates the mastery tree colors/locks
+    mUpdate(); 
 
-    // 3. CLEAR ALL GEAR ROLLS
     gCfg.forEach(p => {
         Object.keys(state.hits[p.id]).forEach(k => {
             state.hits[p.id][k] = 0;
@@ -494,9 +490,6 @@ function resetSubstats() {
         renderPiece(p.id);
     });
 
-    // We do NOT touch the Champ Select or Active Sets.
-
-    // 4. RECALCULATE THE SUMMARY
     updateSummary();
 }
 
@@ -651,10 +644,11 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         });
         
         // THE BORING TAX: Penalize perfectly flat distributions
+        // Lowered to 250,000 so it closely competes with two double rolls (200,000)
         if (totalPieceHits === 8 && count2s === 4) {
-            rollPenalty += 800000; // Flat Legendary Penalty [1][1][1][1]
+            rollPenalty += 250000; // Flat Legendary Penalty [1][1][1][1]
         } else if (totalPieceHits === 9 && count2s === 3 && count3s === 1) {
-            rollPenalty += 800000; // Flat Mythical Penalty [1][1][1][2]
+            rollPenalty += 250000; // Flat Mythical Penalty [1][1][1][2]
         }
     });
 
