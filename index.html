@@ -2,209 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Raid Gear Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raid Gear Optimizer</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div class="dashboard-wrapper">
+<div class="app-container">
+
+    <div class="dashboard-top-row">
         
-        <div class="left-col">
-            <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:10px;">
-                <div class="top-utility-wrap champ-select-wrap" style="margin-bottom: 0;">
-                    <label class="top-utility-label" style="text-align: center; font-size:0.75em;">Champion</label>
-                    <select id="champSelect" class="top-utility champ-select" onchange="champChanged()">
-                        <option value="deathknight" selected>Deathknight</option>
-                        <option value="ninja">Ninja</option>
-                        <option value="marius">Marius the Gallant</option>
+        <div class="settings-card flex-half">
+            <div class="card-header" onclick="toggleSection('championContent')">
+                <span class="card-title">Champion Settings</span>
+            </div>
+            <div class="card-body" id="championContent">
+                <div class="control-row">
+                    <label>Champion:</label>
+                    <select id="champSelect" onchange="champChanged()">
+                        <option value="deathknight">Deathknight (Common)</option>
+                        <option value="ninja" selected>Ninja (Legendary)</option>
+                        <option value="marius">Marius (Mythical)</option>
                     </select>
                 </div>
                 
-                <div style="display: flex; gap: 10px; width: 100%;">
-                    <div class="top-utility-wrap" style="flex: 1;">
-                        <label class="top-utility-label">Awakening</label>
-                        <select id="awkSelect" class="top-utility" onchange="updateSummary()">
-                            <option value="0">0★ (None)</option>
-                            <option value="1">1★</option>
-                            <option value="2">2★</option>
-                            <option value="3">3★</option>
-                            <option value="4">4★</option>
-                            <option value="5">5★</option>
-                            <option value="6">6★</option>
-                        </select>
-                    </div>
-                    <div class="top-utility-wrap" style="flex: 1;">
-                        <label class="top-utility-label">Utility</label>
-                        <select id="utilitySelect" class="top-utility" onchange="updateGlobal()">
-                            <option value="ATK Nuker">ATK Nuker</option>
+                <div class="control-row">
+                    <label>Awakening:</label>
+                    <select id="awkSelect" onchange="updateSummary()">
+                        <option value="0">0★</option>
+                        <option value="1">1★</option>
+                        <option value="2">2★</option>
+                        <option value="3">3★</option>
+                        <option value="4">4★</option>
+                        <option value="5">5★</option>
+                        <option value="6" selected>6★</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <label>Utility Focus:</label>
+                    <div style="display: flex; gap: 5px; width: 100%;">
+                        <select id="utilitySelect" onchange="updateGlobal()" style="flex: 1;">
+                            <option value="ATK Nuker" selected>ATK Nuker</option>
                             <option value="DEF Nuker">DEF Nuker</option>
                             <option value="HP Nuker">HP Nuker</option>
                             <option value="Tank">Tank</option>
                             <option value="Support">Support</option>
                             <option value="Custom">Custom</option>
                         </select>
+                        <button id="overrideBtn" class="btn-small" onclick="toggleOverride()">Fix</button>
                     </div>
                 </div>
             </div>
-
-            <div class="section-card" id="rngCard" style="margin-bottom: 15px;">
-                <div class="section-header" onclick="toggleSection('rngCard')">
-                    <h2>Simulator</h2>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div style="display: flex; gap: 10px; width: 100%;">
-                        <button class="rng-btn" style="flex: 1;" onclick="rollDice()">🎲 Roll</button>
-                        <button class="rng-btn reset-btn" style="flex: 1;" onclick="resetSubstats()">🔄 Reset</button>
-                    </div>
-                    <div class="setting-row" style="margin-top: 15px; margin-bottom: 0;">
-                        <div class="setting-label"><span>Perfection Scale (0-100%)</span><span id="rarityLabel" style="color:var(--gold)">50%</span></div>
-                        <input type="range" id="budgetSlider" min="0" max="100" value="50" step="0.1" oninput="updateGlobal()">
-                    </div>
-                </div>
-            </div>
-
-            <div class="gear-grid" id="mainGrid"></div>
         </div>
 
-        <div class="right-col">
-            <div class="section-card" id="summaryCard">
-                <div class="section-header" style="cursor: default;">
-                    <h2>Build Summary</h2>
-                    <button id="overrideBtn" class="override-btn" onclick="toggleOverride(event)">Override Goals</button>
-                </div>
-                <div class="section-content summary-wrapper">
-                    <div class="summary-grid" id="summaryOutput"></div>
-                </div>
+        <div class="settings-card flex-half">
+            <div class="card-header" onclick="toggleSection('simulatorContent')">
+                <span class="card-title">Simulator Settings</span>
             </div>
-
-            <div class="section-card collapsed" id="setupCard">
-                <div class="section-header" onclick="toggleSection('setupCard')">
-                    <h2>Global Gear Setup</h2>
-                    <span class="toggle-arrow">▼</span>
+            <div class="card-body" id="simulatorContent">
+                <div class="control-row">
+                    <label style="display:flex; justify-content:space-between; width:100%;">
+                        <span>Perfection Scale:</span> 
+                        <strong id="rarityLabel" style="color:var(--gold);">50%</strong>
+                    </label>
+                    <input type="range" id="budgetSlider" min="0" max="100" value="50" style="width: 100%; margin-top:10px;" oninput="updateGlobal()">
                 </div>
-                <div class="section-content">
-                    <div class="toggle-group">
-                        <label class="gh-toggle">
-                            <input type="checkbox" id="ghToggle" checked onchange="updateSummary()">
-                            Max Great Hall Bonus
-                        </label>
-                        <label class="gh-toggle">
-                            <input type="checkbox" id="fgToggle" checked onchange="updateSummary()">
-                            Max Faction Guardians
-                        </label>
-                    </div>
-                    
-                    <div class="glyph-row">
-                        <label>Max Faction Wars Glyphs:
-                            <select id="glyphSelect" onchange="updateGlobal()">
-                                <option value="0">Off (No Glyphs)</option>
-                                <option value="green5">Max 5★ Basic (Green)</option>
-                                <option value="green6">Max 6★ Basic (Green)</option>
-                                <option value="blue6">Max 6★ Rare (Blue)</option>
-                                <option value="purple6">Max 6★ Epic (Purple)</option>
-                                <option value="gold6">Max 6★ Legendary (Gold)</option>
-                            </select>
-                        </label>
-                    </div>
-                    
-                    <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
-                        <div class="setting-label">Gear Ascension Injection</div>
-                        <select id="ascensionMode" class="top-utility" style="margin-top: 5px; font-size: 0.8em; padding: 6px;" onchange="handleAscensionModeChange()">
-                            <option value="off" selected>Off</option>
-                            <option value="ideal">Ideal (Matches Utility)</option>
-                            <option value="custom" style="display:none;">Custom</option>
-                        </select>
-                    </div>
-
-                    <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
-                        <div class="setting-label">Calculation Display Mode</div>
-                        <select id="displayMode" class="top-utility" style="margin-top: 5px; font-size: 0.8em; padding: 6px;" onchange="updateSummary(); gCfg.forEach(p => renderPiece(p.id));">
-                            <option value="random" selected>Random (Realistic)</option>
-                            <option value="range">Range (Min-Max)</option>
-                            <option value="avg">Average</option>
-                            <option value="low">Low Rolls</option>
-                            <option value="high">High Rolls</option>
-                        </select>
-                    </div>
-
-                    <div class="setting-row" style="margin-top: 15px; border-top: 1px solid #444; padding-top: 10px;">
-                        <div class="setting-label">Expected Enemy Ignore DEF (eHP Calcs)</div>
-                        <select id="ignoreDefSelect" class="top-utility" style="margin-top: 5px; font-size: 0.8em; padding: 6px;" onchange="updateGlobal()">
-                            <option value="0">0% (Standard PvE)</option>
-                            <option value="0.25">25% (Savage/Lethal / Arena)</option>
-                            <option value="0.50">50% (Savage + Cruel + Masteries)</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-card collapsed" id="setsCard">
-                <div class="section-header" onclick="toggleSection('setsCard')">
-                    <h2>Active Sets <span id="setBudgetLabel" style="color:#aaa; font-family:monospace; font-size:1.1em; letter-spacing:0;">[0/9]</span></h2>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="set-category">
-                        <div class="set-cat-header">Offense / Nuke</div>
-                        <div id="setList_off" class="set-list"></div>
-                        <select id="setSel_off" class="set-select" onchange="addSet(this.value, 'off')">
-                            <option value="">+ Add Set...</option>
-                        </select>
-                    </div>
-                    <div class="set-category">
-                        <div class="set-cat-header">Speed / Utility</div>
-                        <div id="setList_spd" class="set-list"></div>
-                        <select id="setSel_spd" class="set-select" onchange="addSet(this.value, 'spd')">
-                            <option value="">+ Add Set...</option>
-                        </select>
-                    </div>
-                    <div class="set-category" style="margin-bottom:0;">
-                        <div class="set-cat-header">Survival / Hybrid</div>
-                        <div id="setList_surv" class="set-list"></div>
-                        <select id="setSel_surv" class="set-select" onchange="addSet(this.value, 'surv')">
-                            <option value="">+ Add Set...</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div class="section-card collapsed" id="masteryCard">
-                <div class="section-header" onclick="toggleSection('masteryCard')">
-                    <h2>Mastery Selection</h2>
-                    <span class="toggle-arrow">▼</span>
-                </div>
-                <div class="section-content">
-                    <div class="mastery-container">
-                        <div class="tree-col offense-bg" id="tree_offense">
-                            <span class="tree-name">OFFENSE</span>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="offense" data-tier="1" id="m_blade" onchange="mUpdate()"><div class="m-info"><span class="m-title">Blade Disc.</span><span class="m-stat">+75 ATK</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="offense" data-tier="1" id="m_deadly" onchange="mUpdate()"><div class="m-info"><span class="m-title">Deadly Prec.</span><span class="m-stat">+5% C. RATE</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="offense" data-tier="2" id="m_keen" onchange="mUpdate()"><div class="m-info"><span class="m-title">Keen Strike</span><span class="m-stat">+10% C. DMG</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="offense" data-tier="6" id="m_flawless" onchange="mUpdate()"><div class="m-info"><span class="m-title">Flawless</span><span class="m-stat">+20% C. DMG</span></div></label>
-                        </div>
-                        <div class="tree-col defense-bg" id="tree_defense">
-                            <span class="tree-name">DEFENSE</span>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="defense" data-tier="1" id="m_tough" onchange="mUpdate()"><div class="m-info"><span class="m-title">Tough Skin</span><span class="m-stat">+75 DEF</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="defense" data-tier="1" id="m_defiant" onchange="mUpdate()"><div class="m-info"><span class="m-title">Defiant</span><span class="m-stat">+10 RES</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="defense" data-tier="6" id="m_iron" onchange="mUpdate()"><div class="m-info"><span class="m-title">Iron Skin</span><span class="m-stat">+200 DEF</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="defense" data-tier="6" id="m_unshakable" onchange="mUpdate()"><div class="m-info"><span class="m-title">Unshakable</span><span class="m-stat">+50 RES</span></div></label>
-                        </div>
-                        <div class="tree-col support-bg" id="tree_support">
-                            <span class="tree-name">SUPPORT</span>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="support" data-tier="1" id="m_steadfast" onchange="mUpdate()"><div class="m-info"><span class="m-title">Steadfast</span><span class="m-stat">+810 HP</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="support" data-tier="1" id="m_pinpoint" onchange="mUpdate()"><div class="m-info"><span class="m-title">Pinpoint</span><span class="m-stat">+10 ACC</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="support" data-tier="6" id="m_elixir" onchange="mUpdate()"><div class="m-info"><span class="m-title">Elixir</span><span class="m-stat">+3000 HP</span></div></label>
-                            <label class="mastery-item"><input type="checkbox" class="m-check" data-tree="support" data-tier="6" id="m_eagle" onchange="mUpdate()"><div class="m-info"><span class="m-title">Eagle Eye</span><span class="m-stat">+50 ACC</span></div></label>
-                        </div>
-                    </div>
+                
+                <div class="action-row" style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button class="btn-roll" onclick="rollDice()" style="flex: 2;">ROLL GEAR</button>
+                    <button class="btn-reset" onclick="resetSubstats()" style="flex: 1;">Reset</button>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <script src="script.js"></script>
+    <div class="dashboard-bottom-row">
+        
+        <div class="gear-column">
+            <div id="mainGrid" class="desktop-3x3-grid"></div> 
+            
+            <div class="settings-card" style="margin-top: 15px;">
+                <div class="card-header collapsed" onclick="toggleSection('setsContent')">
+                    <span class="card-title">Active Sets <span id="setBudgetLabel" style="color:#888;">[0/9]</span></span>
+                </div>
+                <div class="card-body collapsed" id="setsContent">
+                    <div style="display: flex; gap: 5px;">
+                        <select id="setSel_off" style="flex:1;"></select><button onclick="addSet(document.getElementById('setSel_off').value, 'off')">Add</button>
+                    </div>
+                    <div id="setList_off"></div>
+                    <hr style="border-color:#333;">
+                    <div style="display: flex; gap: 5px;">
+                        <select id="setSel_spd" style="flex:1;"></select><button onclick="addSet(document.getElementById('setSel_spd').value, 'spd')">Add</button>
+                    </div>
+                    <div id="setList_spd"></div>
+                    <hr style="border-color:#333;">
+                    <div style="display: flex; gap: 5px;">
+                        <select id="setSel_surv" style="flex:1;"></select><button onclick="addSet(document.getElementById('setSel_surv').value, 'surv')">Add</button>
+                    </div>
+                    <div id="setList_surv"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="summary-column">
+            <div class="settings-card">
+                <div class="card-header" style="cursor: default;">
+                    <span class="card-title">Build Summary</span>
+                </div>
+                <div class="card-body">
+                    <div style="margin-bottom: 10px; display: flex; justify-content: flex-end; gap: 10px;">
+                        <select id="displayMode" onchange="gCfg.forEach(p=>renderPiece(p.id)); updateSummary();">
+                            <option value="avg">Avg Rolls</option>
+                            <option value="low">Min Rolls</option>
+                            <option value="high">Max Rolls</option>
+                            <option value="range">Range</option>
+                        </select>
+                        <select id="ascensionMode" onchange="handleAscensionModeChange()">
+                            <option value="ideal">Ideal Ascensions</option>
+                            <option value="off">Off</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    <div id="summaryOutput" style="display: grid; grid-template-columns: auto auto auto auto; gap: 5px; align-items: center;"></div>
+                </div>
+            </div>
+            
+            <div class="settings-card" style="margin-top: 15px;">
+                <div class="card-header collapsed" onclick="toggleSection('globalsContent')">
+                    <span class="card-title">Global Modifiers</span>
+                </div>
+                <div class="card-body collapsed" id="globalsContent" style="display:flex; flex-direction:column; gap:10px;">
+                    <label><input type="checkbox" id="ghToggle" onchange="updateSummary()"> Max Great Hall</label>
+                    <label><input type="checkbox" id="fgToggle" onchange="updateSummary()"> Max Faction Guardians</label>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Glyphs:</span>
+                        <select id="glyphSelect" onchange="updateSummary()">
+                            <option value="0">None</option>
+                            <option value="green5">5★ Normal</option>
+                            <option value="green6">6★ Normal</option>
+                            <option value="gold6" selected>6★ Max</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span>Enemy Ignore DEF:</span>
+                        <select id="ignoreDefSelect" onchange="updateSummary()">
+                            <option value="0">0%</option>
+                            <option value="0.25">25%</option>
+                            <option value="0.5">50%</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:none;">
+                <input type="checkbox" class="m-check" id="m_blade" data-tier="1" data-tree="offense">
+                <input type="checkbox" class="m-check" id="m_deadly" data-tier="1" data-tree="offense">
+                <input type="checkbox" class="m-check" id="m_keen" data-tier="2" data-tree="offense">
+                <input type="checkbox" class="m-check" id="m_flawless" data-tier="6" data-tree="offense">
+                <input type="checkbox" class="m-check" id="m_tough" data-tier="1" data-tree="defense">
+                <input type="checkbox" class="m-check" id="m_defiant" data-tier="1" data-tree="defense">
+                <input type="checkbox" class="m-check" id="m_iron" data-tier="6" data-tree="defense">
+                <input type="checkbox" class="m-check" id="m_steadfast" data-tier="1" data-tree="support">
+                <input type="checkbox" class="m-check" id="m_pinpoint" data-tier="1" data-tree="support">
+                <input type="checkbox" class="m-check" id="m_unshakable" data-tier="6" data-tree="defense">
+                <input type="checkbox" class="m-check" id="m_elixir" data-tier="6" data-tree="support">
+                <input type="checkbox" class="m-check" id="m_eagle" data-tier="6" data-tree="support">
+                <div id="tree_offense"></div><div id="tree_defense"></div><div id="tree_support"></div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
 </body>
 </html>

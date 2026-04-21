@@ -338,7 +338,15 @@ function buildHTMLGrid() {
     grid.innerHTML = html;
 }
 
-function toggleSection(id) { document.getElementById(id).classList.toggle('collapsed'); }
+// UPDATED TO TOGGLE BOTH BODY AND HEADER (FOR ARROW ANIMATION)
+function toggleSection(id) { 
+    let el = document.getElementById(id);
+    el.classList.toggle('collapsed'); 
+    if (el.previousElementSibling && el.previousElementSibling.classList.contains('card-header')) {
+        el.previousElementSibling.classList.toggle('collapsed');
+    }
+}
+
 function expandCard(id) {
     if(event.target.tagName === 'INPUT' || event.target.tagName === 'BUTTON' || event.target.tagName === 'SELECT') return;
     document.getElementById('card_' + id).classList.toggle('expanded');
@@ -643,12 +651,10 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
             totalPieceHits += count;
         });
         
-        // THE BORING TAX: Penalize perfectly flat distributions
-        // Dropped to exactly 100,000 to tie with a double roll penalty
         if (totalPieceHits === 8 && count2s === 4) {
-            rollPenalty += 100000; // Flat Legendary Penalty [1][1][1][1]
+            rollPenalty += 100000;
         } else if (totalPieceHits === 9 && count2s === 3 && count3s === 1) {
-            rollPenalty += 100000; // Flat Mythical Penalty [1][1][1][2]
+            rollPenalty += 100000;
         }
     });
 
