@@ -636,12 +636,26 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
     let rollPenalty = 0;
     
     Object.keys(hitsObj).forEach(p => {
-        Object.values(hitsObj[p]).forEach(count => {
-            if (count === 3) rollPenalty += 100000;       
+        let counts = Object.values(hitsObj[p]).filter(v => v > 0);
+        let count2s = 0;
+        let count3s = 0;
+        let totalPieceHits = 0;
+        
+        counts.forEach(count => {
+            if (count === 2) count2s++;
+            if (count === 3) { rollPenalty += 100000; count3s++; }
             if (count === 4) rollPenalty += 1500000;      
             if (count === 5) rollPenalty += 20000000;     
             if (count === 6) rollPenalty += 250000000;    
+            totalPieceHits += count;
         });
+        
+        // THE BORING TAX: Penalize perfectly flat distributions
+        if (totalPieceHits === 8 && count2s === 4) {
+            rollPenalty += 800000; // Flat Legendary Penalty [1][1][1][1]
+        } else if (totalPieceHits === 9 && count2s === 3 && count3s === 1) {
+            rollPenalty += 800000; // Flat Mythical Penalty [1][1][1][2]
+        }
     });
 
     const tol = { hp: 2000, atk: 200, def: 200, spd: 5, acc: 10, res: 10, cr: 2, cd: 5 };
