@@ -644,11 +644,11 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         });
         
         // THE BORING TAX: Penalize perfectly flat distributions
-        // Lowered to 250,000 so it closely competes with two double rolls (200,000)
+        // Dropped to exactly 100,000 to tie with a double roll penalty
         if (totalPieceHits === 8 && count2s === 4) {
-            rollPenalty += 250000; // Flat Legendary Penalty [1][1][1][1]
+            rollPenalty += 100000; // Flat Legendary Penalty [1][1][1][1]
         } else if (totalPieceHits === 9 && count2s === 3 && count3s === 1) {
-            rollPenalty += 250000; // Flat Mythical Penalty [1][1][1][2]
+            rollPenalty += 100000; // Flat Mythical Penalty [1][1][1][2]
         }
     });
 
