@@ -13,6 +13,10 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--
 #rngCard { flex: 1; display: flex; flex-direction: column; }
 #rngCard .section-content { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
 
+/* TOP CONTROLS ROW (RIGHT COLUMN MATCH) */
+.right-top-wrapper { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; width: 100%; }
+.right-top-wrapper .section-card { margin-bottom: 0; } /* Let the wrapper gap handle spacing */
+
 .section-card { background: var(--panel); border-radius: 8px; border: 1px solid #444; margin-bottom: 12px; overflow: hidden; width: 100%; }
 .section-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.05); }
 .section-header h2 { margin: 0; font-size: 0.85em; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px;}
@@ -140,7 +144,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 /* ADVANCED SUMMARY CSS */
 .summary-wrapper { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 6px;}
 
-/* CHANGED: Shrunk from 1fr to auto, added column-gap and justify-content:center to eliminate huge desktop spacing */
 .summary-grid { display: grid; grid-template-columns: auto auto 90px 60px; column-gap: 12px; row-gap: 8px; align-items: center; justify-content: center; font-size: 0.9em; max-width: 600px; margin: 0 auto; }
 
 .sum-ranges { text-align: right; font-family: monospace; font-size: 1.05em; color: #aaa; letter-spacing: -0.5px;}
@@ -163,10 +166,11 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    /* Force the new wrapper to stack its contents on mobile phones */
+    /* Force the new wrappers to stack their contents gracefully on mobile phones */
     .top-controls-wrapper { flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .champ-setup-block { width: 100%; }
     #rngCard { width: 100%; }
+    .right-top-wrapper { gap: 10px; margin-bottom: 10px; }
 
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
@@ -183,12 +187,14 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 /* =========================================
    DESKTOP SPECIFIC OVERRIDES 
-   Forces natural height (no bottom gap) and larger text
    ========================================= */
 @media (min-width: 1025px) {
+    .top-controls-wrapper { gap: 15px; margin-bottom: 15px; }
+    /* This perfectly spaces the 3 top-right collapsed headers to identically match the top-left block height */
+    .right-top-wrapper { gap: 11px; margin-bottom: 15px; }
+
     .gear-grid { gap: 15px; margin-bottom: 15px; }
     
-    /* Auto aspect ratio kills the bottom empty space! */
     .gear-card { aspect-ratio: auto; padding: 12px; } 
 
     .card-title { font-size: 0.8em; letter-spacing: 0; }
