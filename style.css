@@ -207,14 +207,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 /* =========================================
    HIDDEN MATH TOGGLE (BUILD SUMMARY)
    ========================================= */
-#summaryOutput.hide-math {
-    grid-template-columns: auto auto auto !important; /* Forces 3 columns instead of 4 */
-}
-#summaryOutput.hide-math .math-col {
-    display: none !important; /* Hides the math elements */
-}
-
-/* Make the summary box look clickable */
 #summaryOutput {
     cursor: pointer;
     border-radius: 6px;
@@ -225,5 +217,18 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     background: rgba(255, 255, 255, 0.03);
 }
 #summaryOutput input {
-    cursor: text; /* Keeps normal cursor for typing in goal boxes */
+    cursor: text; 
+}
+
+/* Smooth fade in/out without shifting the grid */
+.math-col {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    opacity: 1;
+    transform: translateX(0);
+}
+#summaryOutput.hide-math .math-col {
+    opacity: 0;
+    pointer-events: none;
+    user-select: none;
+    transform: translateX(-10px); /* Adds a slick slide effect as it fades */
 }
