@@ -24,7 +24,7 @@
                         </select>
                     </div>
                     
-                    <div style="display: flex; gap: 10px; width: 100%;">
+                    <div class="awk-util-row">
                         <div class="top-utility-wrap" style="flex: 1;">
                             <label class="top-utility-label">Awakening</label>
                             <select id="awkSelect" class="top-utility" onchange="updateSummary()">
@@ -68,7 +68,9 @@
                     </div>
                 </div>
 
-            </div> <div class="gear-grid" id="mainGrid"></div>
+            </div> 
+
+            <div class="gear-grid" id="mainGrid"></div>
         </div>
 
         <div class="right-col">
@@ -198,7 +200,9 @@
                     </div>
                 </div>
 
-            </div> <div class="section-card" id="summaryCard">
+            </div> 
+
+            <div class="section-card" id="summaryCard">
                 <div class="section-header" style="cursor: default;">
                     <h2>Build Summary</h2>
                     <button id="overrideBtn" class="override-btn" onclick="toggleOverride(event)">Override Goals</button>
@@ -208,7 +212,9 @@
                 </div>
             </div>
 
-        </div> </div>
+        </div> 
+
+    </div>
 
     <script src="script.js"></script>
 </body>

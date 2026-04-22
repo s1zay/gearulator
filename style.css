@@ -10,12 +10,13 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--
 /* TOP CONTROLS ROW (CHAMP SETUP + SIMULATOR) */
 .top-controls-wrapper { display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch; width: 100%; }
 .champ-setup-block { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.awk-util-row { display: flex; gap: 10px; width: 100%; flex-direction: row; }
 #rngCard { flex: 1; display: flex; flex-direction: column; }
 #rngCard .section-content { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
 
 /* TOP CONTROLS ROW (RIGHT COLUMN MATCH) */
 .right-top-wrapper { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; width: 100%; }
-.right-top-wrapper .section-card { margin-bottom: 0; } /* Let the wrapper gap handle spacing */
+.right-top-wrapper .section-card { margin-bottom: 0; } 
 
 .section-card { background: var(--panel); border-radius: 8px; border: 1px solid #444; margin-bottom: 12px; overflow: hidden; width: 100%; }
 .section-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.05); }
@@ -160,24 +161,33 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 .override-btn.active { background:var(--gold); color:#000; box-shadow: 0 0 8px rgba(212, 175, 55, 0.5);}
 
 /* =========================================
+   GENERAL MOBILE/TABLET RESPONSIVENESS
+   Stacks dropdowns gracefully to avoid cramping
+   ========================================= */
+@media (max-width: 1024px) {
+    .awk-util-row { flex-direction: column; }
+}
+
+/* =========================================
    MOBILE PORTRAIT OVERRIDES 
    ========================================= */
 @media (max-width: 800px) and (orientation: portrait) { 
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
 
-    /* Force the new wrappers to stack their contents gracefully on mobile phones */
     .top-controls-wrapper { flex-direction: column; gap: 10px; margin-bottom: 10px; }
     .champ-setup-block { width: 100%; }
     #rngCard { width: 100%; }
-    .right-top-wrapper { gap: 10px; margin-bottom: 10px; }
+    
+    /* REORDER TRICK: Pushes the 3 settings cards to the very bottom, pulls Summary up */
+    .right-top-wrapper { order: 2; margin-top: 12px; gap: 10px; margin-bottom: 10px; }
+    #summaryCard { order: 1; margin-bottom: 0; }
 
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
     
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
     
-    /* Kept 1fr here so the invisible math column acts as a flexible spacer for mobile */
     .summary-grid { max-width: 100%; grid-template-columns: 1fr auto 75px 50px; gap: 4px; }
     .sum-ranges { font-size: 0.85em; letter-spacing: -0.8px;}
     .sum-label { font-size: 0.9em; padding: 0 4px; min-width: auto;}
@@ -190,8 +200,9 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
    ========================================= */
 @media (min-width: 1025px) {
     .top-controls-wrapper { gap: 15px; margin-bottom: 15px; }
-    /* This perfectly spaces the 3 top-right collapsed headers to identically match the top-left block height */
-    .right-top-wrapper { gap: 11px; margin-bottom: 15px; }
+    
+    /* Bumped gap to exactly 14px so the bottom aligns flush with the Simulator card */
+    .right-top-wrapper { gap: 14px; margin-bottom: 15px; }
 
     .gear-grid { gap: 15px; margin-bottom: 15px; }
     
@@ -210,14 +221,12 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .asc-name { font-size: 0.8em; }
     .asc-select { font-size: 0.8em; padding: 4px; }
 
-    /* Spread the substats comfortably */
     .gear-card:not(.expanded) .sub-row-top { grid-template-columns: 45% 55%; gap: 6px; margin-bottom: 4px; }
     .gear-card:not(.expanded) .sub-label { font-size: 0.85em; letter-spacing: normal; }
     .gear-card:not(.expanded) .sub-val { font-size: 0.95em; letter-spacing: -0.5px; }
 
     .roll-ind, .glyph-val { font-size: 1em; }
 
-    /* Make the expanded edit mode bigger to match */
     .gear-card.expanded .sub-row-top { font-size: 1.25em; margin-bottom: 8px;}
     .gear-card.expanded .sub-label { font-size: 0.9em; }
     .gear-card.expanded .sub-val { font-size: 1.1em; }
@@ -266,7 +275,6 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     #summaryOutput {
         cursor: default;
     }
-    /* Forces math to show even if the script triggers .hide-math */
     #summaryOutput.hide-math .math-col {
         opacity: 1 !important;
         pointer-events: auto !important;
