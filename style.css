@@ -7,6 +7,12 @@ body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--
 .left-col { flex: 1; display: flex; flex-direction: column; max-width: 50%; width: 100%; }
 .right-col { flex: 1; display: flex; flex-direction: column; min-width: 0; width: 100%; } 
 
+/* TOP CONTROLS ROW (CHAMP SETUP + SIMULATOR) */
+.top-controls-wrapper { display: flex; gap: 15px; margin-bottom: 15px; align-items: stretch; width: 100%; }
+.champ-setup-block { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+#rngCard { flex: 1; display: flex; flex-direction: column; }
+#rngCard .section-content { display: flex; flex-direction: column; justify-content: center; flex-grow: 1; }
+
 .section-card { background: var(--panel); border-radius: 8px; border: 1px solid #444; margin-bottom: 12px; overflow: hidden; width: 100%; }
 .section-header { padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: rgba(255,255,255,0.05); }
 .section-header h2 { margin: 0; font-size: 0.85em; text-transform: uppercase; color: var(--gold); letter-spacing: 1px; display: flex; align-items: center; gap: 10px;}
@@ -156,6 +162,11 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 @media (max-width: 800px) and (orientation: portrait) { 
     .dashboard-wrapper { flex-direction: column; gap: 0; width: 100%; overflow-x: hidden; }
     .left-col, .right-col { max-width: 100%; width: 100%; }
+
+    /* Force the new wrapper to stack its contents on mobile phones */
+    .top-controls-wrapper { flex-direction: column; gap: 10px; margin-bottom: 10px; }
+    .champ-setup-block { width: 100%; }
+    #rngCard { width: 100%; }
 
     .gear-grid { grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 0 0 15px 0; width: 100%; max-width: none;} 
     .gear-card { padding: 3px; } 
