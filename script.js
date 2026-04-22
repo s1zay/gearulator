@@ -1048,7 +1048,7 @@ function renderPiece(piece) {
         pHTML = `<select class="primary-select" id="p_sel_${piece}" onchange="changePrimary('${piece}', this.value)" onclick="event.stopPropagation()">`;
         config.po.forEach(opt => {
             const sel = pStat === opt ? 'selected' : '';
-            pHTML += `<option value="${opt}" ${sel}>${roll[opt].n.replace('%','')}</option>`;
+            pHTML += `<option value="${opt}" ${sel}>${roll[opt].n}</option>`;
         });
         pHTML += `</select>`;
     } else {
@@ -1068,7 +1068,7 @@ function renderPiece(piece) {
         if (isExp) {
             aHTML = `<select class="asc-select" onchange="changeAscension('${piece}', this.value)" onclick="event.stopPropagation()">
                 <option value="none">Remove</option>
-                ${ascPool[piece].map(opt => `<option value="${opt}" ${ascStat===opt?'selected':''}>${roll[opt].n.replace('%','')}</option>`).join('')}
+                ${ascPool[piece].map(opt => `<option value="${opt}" ${ascStat===opt?'selected':''}>${roll[opt].n}</option>`).join('')}
             </select>`;
         } else {
             aHTML = `<span class="asc-name">${aNameRaw}</span>`;
@@ -1080,7 +1080,7 @@ function renderPiece(piece) {
             document.getElementById(`card_${piece}`).classList.add('has-ascension');
             aDisp.innerHTML = `<select class="asc-select" onchange="changeAscension('${piece}', this.value)" onclick="event.stopPropagation()">
                 <option value="none" selected>+ Add Ascension</option>
-                ${ascPool[piece].map(opt => `<option value="${opt}">${roll[opt].n.replace('%','')}</option>`).join('')}
+                ${ascPool[piece].map(opt => `<option value="${opt}">${roll[opt].n}</option>`).join('')}
             </select>`;
         } else {
             document.getElementById(`card_${piece}`).classList.remove('has-ascension');
