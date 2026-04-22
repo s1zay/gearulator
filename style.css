@@ -133,9 +133,12 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
 
 /* ADVANCED SUMMARY CSS */
 .summary-wrapper { padding: 15px; background: rgba(0,0,0,0.3); border-radius: 6px;}
-.summary-grid { display: grid; grid-template-columns: 1fr auto 90px 60px; row-gap: 8px; align-items: center; font-size: 0.9em; max-width: 550px; margin: 0 auto; }
+
+/* CHANGED: Shrunk from 1fr to auto, added column-gap and justify-content:center to eliminate huge desktop spacing */
+.summary-grid { display: grid; grid-template-columns: auto auto 90px 60px; column-gap: 12px; row-gap: 8px; align-items: center; justify-content: center; font-size: 0.9em; max-width: 600px; margin: 0 auto; }
+
 .sum-ranges { text-align: right; font-family: monospace; font-size: 1.05em; color: #aaa; letter-spacing: -0.5px;}
-.sum-label { text-align: right; color: var(--gold); font-weight: bold; padding: 0 10px; min-width: 80px; white-space: nowrap; }
+.sum-label { text-align: right; color: var(--gold); font-weight: bold; padding: 0 5px; min-width: 80px; white-space: nowrap; }
 .sum-final { text-align: left; color: var(--green); font-size: 1.15em; font-weight: 900; font-family: monospace; letter-spacing: -0.5px;}
 .sum-goal { text-align: center; }
 .sum-goal input { width: 100%; max-width: 55px; background: #111; color: var(--gold); border: 1px solid #555; border-radius: 4px; text-align: center; font-size: 0.95em; font-weight: bold; padding: 3px; font-family: monospace;}
@@ -159,6 +162,7 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     
     .mastery-container { grid-template-columns: 1fr; gap: 15px;} 
     
+    /* Kept 1fr here so the invisible math column acts as a flexible spacer for mobile */
     .summary-grid { max-width: 100%; grid-template-columns: 1fr auto 75px 50px; gap: 4px; }
     .sum-ranges { font-size: 0.85em; letter-spacing: -0.8px;}
     .sum-label { font-size: 0.9em; padding: 0 4px; min-width: auto;}
@@ -208,27 +212,48 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
    HIDDEN MATH TOGGLE (BUILD SUMMARY)
    ========================================= */
 #summaryOutput {
-    cursor: pointer;
     border-radius: 6px;
     transition: background 0.2s ease;
     padding: 5px;
 }
-#summaryOutput:hover {
-    background: rgba(255, 255, 255, 0.03);
-}
-#summaryOutput input {
-    cursor: text; 
-}
 
-/* Smooth fade in/out without shifting the grid */
 .math-col {
     transition: opacity 0.25s ease, transform 0.25s ease;
-    opacity: 1;
-    transform: translateX(0);
 }
-#summaryOutput.hide-math .math-col {
-    opacity: 0;
-    pointer-events: none;
-    user-select: none;
-    transform: translateX(-10px); /* Adds a slick slide effect as it fades */
+
+/* On Mobile: Tap to reveal math */
+@media (max-width: 800px) {
+    #summaryOutput {
+        cursor: pointer;
+    }
+    #summaryOutput:hover {
+        background: rgba(255, 255, 255, 0.03);
+    }
+    #summaryOutput input {
+        cursor: text; 
+    }
+    .math-col {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    #summaryOutput.hide-math .math-col {
+        opacity: 0;
+        pointer-events: none;
+        user-select: none;
+        transform: translateX(-10px);
+    }
+}
+
+/* On Desktop: Math is permanently visible */
+@media (min-width: 801px) {
+    #summaryOutput {
+        cursor: default;
+    }
+    /* Forces math to show even if the script triggers .hide-math */
+    #summaryOutput.hide-math .math-col {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        user-select: auto !important;
+        transform: none !important;
+    }
 }
