@@ -1479,7 +1479,7 @@ function updateSummary() {
     }
 
     let html = `
-        <div class="col-header" style="text-align: right;">Breakdown</div>
+        <div class="col-header math-col" style="text-align: right;">Breakdown</div>
         <div class="col-header" style="text-align: right; padding-right:10px;">Stat</div>
         <div class="col-header" style="text-align: left;">Total</div>
         <div class="col-header" style="text-align: center;">Goal</div>
@@ -1492,18 +1492,27 @@ function updateSummary() {
         if (r.k === 'balance') {
             html += `<div style="grid-column: 1 / -1; text-align: center; color: #00ffff; font-family: monospace; font-size: 1.0em; font-weight: 900; margin-top: 5px; white-space: nowrap; letter-spacing: -0.5px;">${r.l} ${r.v.total}</div>`;
         } else if (r.k === 'ehp') {
-            html += `<div class="sum-ranges ehp-row">${r.v.math}</div>
+            html += `<div class="sum-ranges ehp-row math-col">${r.v.math}</div>
                      <div class="sum-label ehp-row">${r.l}</div>
                      <div class="sum-final ehp-row">${r.v.total}</div>
                      <div class="sum-goal ehp-row"><input type="number" value="${gVal}" placeholder="-" disabled></div>`;
         } else {
-            html += `<div class="sum-ranges">${r.v.math}</div>
+            html += `<div class="sum-ranges math-col">${r.v.math}</div>
                      <div class="sum-label">${r.l}</div>
                      <div class="sum-final">${r.v.total}</div>
                      <div class="sum-goal"><input type="number" value="${gVal}" placeholder="-" ${inputDisabled} oninput="saveUserGoal('${r.k}', this.value)"></div>`; 
         }
     });
     document.getElementById('summaryOutput').innerHTML = html;
+}
+
+// Toggles the breakdown math in the summary card
+function toggleMath(e) {
+    // Don't toggle if the user is clicking on an input box to type a goal
+    if (e.target.tagName === 'INPUT') return; 
+    
+    let sumBox = document.getElementById('summaryOutput');
+    sumBox.classList.toggle('hide-math');
 }
 
 window.onload = () => {

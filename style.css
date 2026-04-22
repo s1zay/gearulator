@@ -203,3 +203,27 @@ input[type="range"] { width: 100%; accent-color: var(--gold); cursor: pointer; }
     .btn-step { width: 34px; height: 30px; font-size: 1.2em;}
     .hit-count { font-size: 1.2em; }
 }
+
+/* =========================================
+   HIDDEN MATH TOGGLE (BUILD SUMMARY)
+   ========================================= */
+#summaryOutput.hide-math {
+    grid-template-columns: auto auto auto !important; /* Forces 3 columns instead of 4 */
+}
+#summaryOutput.hide-math .math-col {
+    display: none !important; /* Hides the math elements */
+}
+
+/* Make the summary box look clickable */
+#summaryOutput {
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+    padding: 5px;
+}
+#summaryOutput:hover {
+    background: rgba(255, 255, 255, 0.03);
+}
+#summaryOutput input {
+    cursor: text; /* Keeps normal cursor for typing in goal boxes */
+}
