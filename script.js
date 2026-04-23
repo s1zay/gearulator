@@ -385,7 +385,6 @@ function calcLimits(budget) {
     
     let rem = budget - 63; 
     
-    // Purely random rarity distribution
     while (rem > 0) {
         let avail = pList.filter(p => limits[p] < 9);
         if (avail.length === 0) break;
@@ -797,10 +796,6 @@ function rollDice() {
     const utility = document.getElementById('utilitySelect').value;
     let b = perfBounds[utility] || perfBounds['Custom'];
     let pNorm = (state.globalBudget - 63) / 18;
-    // ... [The rest of your existing rollDice code continues exactly as before]
-    const utility = document.getElementById('utilitySelect').value;
-    let b = perfBounds[utility] || perfBounds['Custom'];
-    let pNorm = (state.globalBudget - 63) / 18;
     let goalHits = Math.round(b.min.g + (b.max.g - b.min.g) * pNorm);
     let secHits = Math.round(b.min.s + (b.max.s - b.min.s) * pNorm);
     let trashHits = state.globalBudget - goalHits - secHits;
@@ -955,7 +950,7 @@ function rollDice() {
         }
 
         if (!rollFail) {
-       validGensFound++;
+            validGensFound++;
             
             let allowPrimaryRandomization = (utility === 'Custom' || utility.includes('Nuker'));
             let refinedPris = JSON.parse(JSON.stringify(state.primaries));
