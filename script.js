@@ -1,7 +1,8 @@
 const baseStats = {
     'deathknight': { rarity: 'common', hp: 11055, atk: 539, def: 826, spd: 86, cr: 15, cd: 50, acc: 0, res: 30, ign: 0 },
     'ninja': { rarity: 'legendary', hp: 16845, atk: 1509, def: 947, spd: 100, cr: 15, cd: 63, acc: 0, res: 30, ign: 0 },
-    'marius': { rarity: 'mythical', hp: 19815, atk: 980, def: 1531, spd: 115, cr: 15, cd: 63, acc: 0, res: 30, ign: 0 }
+    'marius': { rarity: 'mythical', hp: 19815, atk: 980, def: 1531, spd: 115, cr: 15, cd: 63, acc: 0, res: 30, ign: 0 },
+    'mavara': { rarity: 'legendary', hp: 22305, atk: 892, def: 1200, spd: 110, cr: 15, cd: 50, acc: 0, res: 40, ign: 0 }
 };
 
 const awkStats = {
@@ -644,7 +645,6 @@ function getScore(hitsObj, utility, currentPrimaries = state.primaries) {
         });
         
         // THE BORING TAX: Penalize perfectly flat distributions
-        // Dropped to exactly 100,000 to tie with a double roll penalty
         if (totalPieceHits === 8 && count2s === 4) {
             rollPenalty += 100000; // Flat Legendary Penalty [1][1][1][1]
         } else if (totalPieceHits === 9 && count2s === 3 && count3s === 1) {
