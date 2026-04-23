@@ -933,22 +933,26 @@ function rollDice() {
         }
 
         if (!rollFail) {
-            validGensFound++;
+       validGensFound++;
             
+            let allowPrimaryRandomization = (utility === 'Custom' || utility.includes('Nuker'));
             let refinedPris = JSON.parse(JSON.stringify(state.primaries));
-            gCfg.forEach(p => {
-                if (p.po.length > 1) {
-                    let mutablePiece = gCfg.find(x => x.id === p.id);
-                    let validOptions = mutablePiece.po.filter(opt => tempHits[p.id][opt] === 0);
-                    
-                    if (validOptions.length > 0) {
-                        refinedPris[p.id] = validOptions[Math.floor(Math.random() * validOptions.length)];
-                    } else {
-                        refinedPris[p.id] = mutablePiece.po[0];
-                        tempHits[p.id][refinedPris[p.id]] = 0; 
+            
+            if (allowPrimaryRandomization) {
+                gCfg.forEach(p => {
+                    if (p.po.length > 1) {
+                        let mutablePiece = gCfg.find(x => x.id === p.id);
+                        let validOptions = mutablePiece.po.filter(opt => tempHits[p.id][opt] === 0);
+                        
+                        if (validOptions.length > 0) {
+                            refinedPris[p.id] = validOptions[Math.floor(Math.random() * validOptions.length)];
+                        } else {
+                            refinedPris[p.id] = mutablePiece.po[0];
+                            tempHits[p.id][refinedPris[p.id]] = 0; 
+                        }
                     }
-                }
-            });
+                });
+            }
 
             let refinedObj = hillClimbOptimizer(tempHits, utility, refinedPris);
             let score = getScore(refinedObj.hits, utility, refinedObj.pris);
