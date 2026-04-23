@@ -378,13 +378,21 @@ function changeAscension(piece, val) {
     updateSummary();
 }
 
-function calcLimits(budget, utility) {
+function calcLimits(budget) {
     let limits = {};
-    const pList = prio[utility] || prio['Custom'];
+    let pList = gCfg.map(p => p.id);
     pList.forEach(p => limits[p] = 7); 
+    
     let rem = budget - 63; 
-    for(let i=0; i<9 && rem>0; i++) { limits[pList[i]]++; rem--; } 
-    for(let i=0; i<9 && rem>0; i++) { limits[pList[i]]++; rem--; } 
+    
+    // Purely random rarity distribution
+    while (rem > 0) {
+        let avail = pList.filter(p => limits[p] < 9);
+        if (avail.length === 0) break;
+        let target = avail[Math.floor(Math.random() * avail.length)];
+        limits[target]++;
+        rem--;
+    }
     return limits;
 }
 
@@ -467,7 +475,7 @@ function updateGlobal() {
 
     document.getElementById('rarityLabel').innerText = `${Math.round(pctRaw)}%`;
     
-    state.pieceLimits = calcLimits(state.globalBudget, utility);
+    state.pieceLimits = calcLimits(state.globalBudget);
     gCfg.forEach(p => { enforceTrim(p.id); renderPiece(p.id); });
     updateSummary();
 }
@@ -776,6 +784,20 @@ function hillClimbOptimizer(initialHits, utility, initialPrimaries) {
 }
 
 function rollDice() {
+    let pctRaw = parseFloat(document.getElementById('budgetSlider').value);
+    
+    // 1. Assign 5★ or 6★ based on Kraken Scale percentage
+    gCfg.forEach(p => {
+        state.ranks[p.id] = (Math.random() * 100 <= pctRaw) ? 6 : 5;
+    });
+    
+    // 2. Re-shuffle the Mythical/Legendary piece assignments on every roll
+    state.pieceLimits = calcLimits(state.globalBudget);
+
+    const utility = document.getElementById('utilitySelect').value;
+    let b = perfBounds[utility] || perfBounds['Custom'];
+    let pNorm = (state.globalBudget - 63) / 18;
+    // ... [The rest of your existing rollDice code continues exactly as before]
     const utility = document.getElementById('utilitySelect').value;
     let b = perfBounds[utility] || perfBounds['Custom'];
     let pNorm = (state.globalBudget - 63) / 18;
