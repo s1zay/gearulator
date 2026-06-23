@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision AI Sandbox - Gear-ulator V2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #121212; color: #fff; padding: 20px; }
+        .panel { background-color: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
+        canvas { border: 2px dashed #f39c12; max-width: 100%; height: auto; margin-top: 15px; display: block; }
+        .master-btn { background-color: #e67e22; color: white; border: none; padding: 15px 30px; cursor: pointer; font-size: 18px; font-weight: bold; border-radius: 6px; margin-bottom: 10px; width: 100%; transition: 0.2s; }
+        .master-btn:hover { background-color: #d35400; }
+        .master-btn:disabled { background-color: #555; cursor: not-allowed; }
+        .data-box { background-color: #000; padding: 15px; border-radius: 6px; margin-top: 15px; font-family: 'Consolas', monospace; color: #2ecc71; border-left: 4px solid #27ae60; white-space: pre-wrap; font-size: 14px; max-height: 400px; overflow-y: auto; }
+        h3 { margin-top: 0; color: #f39c12; }
+        .progress-text { color: #3498db; font-weight: bold; margin-top: 10px; }
+        .timer-text { color: #f39c12; font-style: italic; }
+    </style>
+    
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="cvReady()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+    <h1>Gear-ulator Vision Sandbox</h1>
+    
+    <div class="panel">
+        <h3>1. Image Input</h3>
+        <input type="file" id="imageLoader" accept="image/*">
+        <p id="cv-status" style="color: #f39c12; font-weight: bold;">[ ] Waiting for OpenCV.js...</p>
+        <canvas id="imageCanvas"></canvas> 
+        <canvas id="tempCanvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="panel">
+        <h3>2. The Master Audit</h3>
+        <button id="masterBtn" class="master-btn" disabled onclick="runMasterAudit()">Run Full Master Audit</button>
+        <div id="progress-indicator" class="progress-text">Waiting to start...</div>
+        <div id="master-result" class="data-box">Final Audit Data will appear here...</div>
+    </div>
+
+    <script>
+        let imgElement = new Image();
+        let canvas = document.getElementById('imageCanvas');
+        let tempCanvas = document.getElementById('tempCanvas');
+        let ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let masterData = {}; 
+
+        function cvReady() {
+            document.getElementById('cv-status').innerText = "[✓] OpenCV.js Engine Online";
+            document.getElementById('cv-status').style.color = "#2ecc71";
+            document.getElementById('masterBtn').disabled = false;
+        }
+
+        document.getElementById('imageLoader').addEventListener('change', function(e) {
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                imgElement.onload = function() {
+                    canvas.width = imgElement.width;
+                    canvas.height = imgElement.height;
+                    ctx.drawImage(imgElement, 0, 0, imgElement.width, imgElement.height);
+                    document.getElementById('progress-indicator').innerText = "Image loaded. Ready for scan.";
+                    masterData = {}; 
+                }
+                imgElement.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        async function runMasterAudit() {
+            const btn = document.getElementById('masterBtn');
+            const progress = document.getElementById('progress-indicator');
+            const output = document.getElementById('master-result');
+            
+            // Start the Timer
+            const startTime = performance.now();
+            
+            btn.disabled = true;
+            output.innerHTML = "Processing...";
+
+            // 1. Geometric Scan
+            progress.innerText = "Step 1/4: Locating Main Grid...";
+            let isValid = findStatsBox();
+            if (!isValid) {
+                btn.disabled = false;
+                progress.innerText = "Audit Halted.";
+                return;
+            }
+
+            // 2. Identity Extraction
+            progress.innerText = "Step 2/4: Identifying Champion...";
+            await scanChampionName();
+            countStars();
+
+            if (masterData.Identity.Champion === "Unknown" && masterData.Identity.AscensionLevel === 0 && masterData.Identity.AwakeningLevel === 0) {
+                console.warn("Identity not found. Proceeding with grid scan anyway.");
+            }
+
+            // 3. Area Context (The optimized Dragon Fix)
+            progress.innerText = "Step 3/4: Reading Area Selection...";
+            await scanAreaDropdown();
+
+            // 4. Grid Sweep
+            progress.innerText = "Step 4/4: Commencing Deep Grid Sweep...";
+            let sweepSuccess = await sweepGridMatrix();
+
+            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height); 
+
+            if (!sweepSuccess) {
+                progress.innerText = "Audit Halted.";
+                output.innerText = "Error: Number scan failed (returned zeros). Adjust screenshot or crop.";
+                ctx.strokeStyle = "#e74c3c";
+                ctx.lineWidth = 6;
+                ctx.strokeRect(window.lastFoundRect.x, window.lastFoundRect.y, window.lastFoundRect.width, window.lastFoundRect.height);
+                btn.disabled = false;
+                return;
+            }
+
+            // Stop the Timer
+            const endTime = performance.now();
+            const totalTime = ((endTime - startTime) / 1000).toFixed(2);
+
+            // Finish
+            progress.innerText = `Audit Complete! (Time: ${totalTime}s)`;
+            progress.style.color = "#2ecc71";
+            output.innerHTML = JSON.stringify(masterData, null, 2);
+            btn.disabled = false;
+        }
+
+        function findStatsBox() {
+            let src = cv.imread(canvas);
+            let gray = new cv.Mat();
+            let thresh = new cv.Mat();
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            cv.threshold(gray, thresh, 80, 255, cv.THRESH_BINARY);
+            cv.findContours(thresh, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+            
+            let mainRect = null;
+            let maxArea = 0;
+            
+            for (let i = 0; i < contours.size(); ++i) {
+                let rect = cv.boundingRect(contours.get(i));
+                let aspectRatio = rect.width / rect.height;
+                if (rect.width >= (src.cols * 0.98) && rect.height >= (src.rows * 0.98)) continue;
+                if (rect.width > (src.cols * 0.20) && rect.height > (src.rows * 0.10)) {
+                    if (aspectRatio > 1.3 && aspectRatio < 2.2) {
+                        if ((rect.width * rect.height) > maxArea) { 
+                            maxArea = rect.width * rect.height; 
+                            mainRect = rect; 
+                        }
+                    }
+                }
+            }
+
+            if (!mainRect) {
+                document.getElementById('master-result').innerText = "Error: Could not locate grid.";
+                src.delete(); gray.delete(); thresh.delete(); contours.delete(); hierarchy.delete();
+                return false;
+            }
+
+            let midY = Math.floor(mainRect.y + (mainRect.height / 2));
+            let leftEdge = mainRect.x;
+            let rightEdge = mainRect.x + mainRect.width;
+            for (let x = mainRect.x; x < mainRect.x + 100; x++) { if (thresh.ucharAt(midY, x) > 0) { leftEdge = x; break; } }
+            for (let x = mainRect.x + mainRect.width; x > mainRect.x + mainRect.width - 100; x--) { if (thresh.ucharAt(midY, x) > 0) { rightEdge = x; break; } }
+            mainRect.x = leftEdge; 
+            mainRect.width = rightEdge - leftEdge;
+            
+            window.lastFoundRect = mainRect;
+            src.delete(); gray.delete(); thresh.delete(); contours.delete(); hierarchy.delete();
+            return true;
+        }
+
+        async function scanChampionName() {
+            const rect = { left: 0, top: 0, width: canvas.width, height: Math.floor(canvas.height * 0.20) };
+            masterData.Identity = {};
+            try {
+                const result = await Tesseract.recognize(canvas, 'eng', { rectangle: rect });
+                const match = result.data.text.match(/([a-zA-Z\s\-',]+)\s+Lvl\.\s*([0-9O]+)/i);
+                if (match) {
+                    let cleanName = match[1].replace(/[^a-zA-Z\s\-',]/g, '').trim();
+                    masterData.Identity.Champion = cleanName;
+                    masterData.Identity.Level = parseInt(match[2].toString().replace(/O/g, '0'));
+                } else {
+                    masterData.Identity.Champion = "Unknown";
+                }
+            } catch (error) { masterData.Identity.Error = "OCR Failed"; }
+        }
+
+        function countStars() {
+            let src = cv.imread(canvas);
+            let rect = new cv.Rect(0, 0, src.cols, Math.floor(src.rows * 0.15));
+            let cropped = src.roi(rect);
+            let hsv = new cv.Mat();
+            cv.cvtColor(cropped, hsv, cv.COLOR_RGBA2RGB);
+            cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
+            let masks = { purple: new cv.Mat(), red: new cv.Mat(), yellow: new cv.Mat() };
+            let lowP = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [125, 50, 50, 0]), highP = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [160, 255, 255, 0]);
+            let lowR = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [0, 100, 100, 0]), highR = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [10, 255, 255, 0]);
+            let lowY = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [20, 100, 100, 0]), highY = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [40, 255, 255, 0]);
+            cv.inRange(hsv, lowP, highP, masks.purple); cv.inRange(hsv, lowR, highR, masks.red); cv.inRange(hsv, lowY, highY, masks.yellow);
+            let allBlobs = [];
+            Object.keys(masks).forEach(color => {
+                let contours = new cv.MatVector(), hierarchy = new cv.Mat();
+                cv.findContours(masks[color], contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+                for (let i = 0; i < contours.size(); ++i) {
+                    if (cv.contourArea(contours.get(i)) > 40) {
+                        let bRect = cv.boundingRect(contours.get(i));
+                        allBlobs.push({ color: color, x: bRect.x, width: bRect.width, right: bRect.x + bRect.width });
+                    }
+                }
+                contours.delete(); hierarchy.delete();
+            });
+            allBlobs.sort((a, b) => b.x - a.x);
+            let trueStars = [];
+            if (allBlobs.length > 0) {
+                trueStars.push(allBlobs[0]);
+                for (let i = 1; i < allBlobs.length; i++) {
+                    let gap = allBlobs[i-1].x - allBlobs[i].right;
+                    if (gap < 50) trueStars.push(allBlobs[i]); else break;
+                }
+            }
+            masterData.Identity.AscensionLevel = trueStars.filter(b => b.color === 'purple').length + trueStars.filter(b => b.color === 'red').length;
+            masterData.Identity.AwakeningLevel = trueStars.filter(b => b.color === 'red').length;
+            src.delete(); cropped.delete(); hsv.delete(); Object.values(masks).forEach(m => m.delete());
+            lowP.delete(); highP.delete(); lowR.delete(); highR.delete(); lowY.delete(); highY.delete();
+        }
+
+        async function scanAreaDropdown() {
+            const main = window.lastFoundRect;
+            let x = main.x + Math.floor(main.width * 0.7995);
+            let y = main.y + Math.floor(main.height * 0.1111);
+            let w = Math.floor(main.width * (0.9612 - 0.7995));
+            let h = Math.floor(main.height * (0.1921 - 0.1111));
+            
+            ctx.strokeStyle = "#3498db";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(x, y, w, h);
+
+            let src = cv.imread(canvas);
+            let roi = src.roi(new cv.Rect(x, y, w, h));
+            let gray = new cv.Mat();
+            cv.cvtColor(roi, gray, cv.COLOR_RGBA2GRAY);
+            
+            // Clean high-contrast threshold
+            cv.threshold(gray, gray, 150, 255, cv.THRESH_BINARY);
+            cv.imshow('tempCanvas', gray);
+
+            try {
+                const result = await Tesseract.recognize(tempCanvas, 'eng', { 
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz \'',
+                    tessedit_pageseg_mode: '7' 
+                });
+                let areaText = result.data.text.trim();
+                if (areaText.length > 2) {
+                    masterData.Context = areaText;
+                } else {
+                    // Fallback to raw if threshold was too aggressive
+                    cv.imshow('tempCanvas', roi); 
+                    const secondTry = await Tesseract.recognize(tempCanvas, 'eng', { tessedit_pageseg_mode: '7' });
+                    let secondText = secondTry.data.text.trim();
+                    masterData.Context = secondText.length > 2 ? secondText : "Chimera Stats";
+                }
+            } catch (e) { masterData.Context = "Chimera Stats (OCR Error)"; }
+            src.delete(); roi.delete(); gray.delete();
+        }
+
+        async function sweepGridMatrix() {
+            const main = window.lastFoundRect;
+            masterData.Stats = {};
+            const rowMap = [
+                { id: "hp", label: "HP", t: 0.2897, b: 0.3602 },
+                { id: "atk", label: "ATK", t: 0.3594, b: 0.4257 },
+                { id: "def", label: "DEF", t: 0.4248, b: 0.4912 },
+                { id: "spd", label: "SPD", t: 0.4901, b: 0.5589 },
+                { id: "crate", label: "C_RATE", t: 0.5577, b: 0.6244 },
+                { id: "cdmg", label: "C_DMG", t: 0.6230, b: 0.6921 },
+                { id: "res", label: "RES", t: 0.6906, b: 0.7598 },
+                { id: "acc", label: "ACC", t: 0.7581, b: 0.8253 },
+                { id: "ignore", label: "IGNORE_DEF", t: 0.8235, b: 0.8908 }
+            ];
+            const colMap = [
+                { id: "basic", label: "Basic", l: 0.0, r: 0.1150 },
+                { id: "artifacts", label: "Artifacts", l: 0.1150, r: 0.1981 },
+                { id: "affinity", label: "Affinity_Bonus", l: 0.1981, r: 0.2858 },
+                { id: "arena", label: "Classic_Arena", l: 0.2858, r: 0.3690 },
+                { id: "masteries", label: "Masteries", l: 0.3690, r: 0.4555 },
+                { id: "faction", label: "Faction_Guardians", l: 0.4555, r: 0.5489 },
+                { id: "empowerment", label: "Empowerment", l: 0.5489, r: 0.6594 },
+                { id: "blessing", label: "Blessing", l: 0.6594, r: 0.7425 },
+                { id: "relic", label: "Relic", l: 0.7425, r: 0.8291 },
+                { id: "area", label: "Area_Bonuses", l: 0.8291, r: 0.9123 },
+                { id: "total", label: "Total", l: 0.9123, r: 0.9950 }
+            ];
+            let currentCell = 0;
+            for (let stat of rowMap) {
+                masterData.Stats[stat.label] = {};
+                for (let col of colMap) {
+                    currentCell++;
+                    document.getElementById('progress-indicator').innerText = `Step 4/4: Scanning Cell ${currentCell}/99...`;
+                    let x = main.x + Math.floor(main.width * col.l);
+                    let y = main.y + Math.floor(main.height * stat.t);
+                    let w = Math.floor(main.width * (col.r - col.l));
+                    let h = Math.floor(main.height * (stat.b - stat.t));
+                    let src = cv.imread(canvas);
+                    let roi = src.roi(new cv.Rect(x, y, w, h));
+                    let gray = new cv.Mat();
+                    cv.cvtColor(roi, gray, cv.COLOR_RGBA2GRAY);
+                    cv.threshold(gray, gray, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+                    cv.imshow('tempCanvas', gray);
+                    try {
+                        const result = await Tesseract.recognize(tempCanvas, 'eng', { tessedit_char_whitelist: '0123456789' });
+                        let val = result.data.text.replace(/[^0-9]/g, '');
+                        masterData.Stats[stat.label][col.label] = val ? parseInt(val) : 0;
+                    } catch (e) { masterData.Stats[stat.label][col.label] = 0; }
+                    src.delete(); roi.delete(); gray.delete();
+                }
+                if (stat.id === "hp" && masterData.Stats["HP"]["Basic"] === 0 && masterData.Stats["HP"]["Total"] === 0) return false;
+            }
+            return true;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vision AI Sandbox - Gear-ulator V2</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #121212; color: #fff; padding: 20px; }
+        .panel { background-color: #1e1e1e; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #333; }
+        canvas { border: 2px dashed #f39c12; max-width: 100%; height: auto; margin-top: 15px; display: block; }
+        button { background-color: #27ae60; color: white; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; border-radius: 4px; margin-right: 10px; transition: 0.2s; }
+        button:hover { background-color: #2ecc71; }
+        button:disabled { background-color: #444; cursor: not-allowed; }
+        .data-box { background-color: #000; padding: 15px; border-radius: 6px; margin-top: 15px; font-family: 'Consolas', monospace; color: #2ecc71; border-left: 4px solid #27ae60; white-space: pre-wrap; }
+        h3 { margin-top: 0; color: #f39c12; }
+    </style>
+    
+    <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="cvReady()"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body>
+
+    <h1>Gear-ulator Vision Sandbox</h1>
+    
+    <div class="panel">
+        <h3>1. Image Input</h3>
+        <input type="file" id="imageLoader" accept="image/*">
+        <p id="cv-status" style="color: #f39c12; font-weight: bold;">[ ] Waiting for OpenCV.js...</p>
+        <canvas id="imageCanvas"></canvas> 
+        <canvas id="tempCanvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="panel">
+        <h3>2. Name & Level Extraction</h3>
+        <button id="scanBtn" disabled onclick="scanChampionName()">Analyze Text</button>
+        <div id="ocr-result" class="data-box">Awaiting text scan...</div>
+    </div>
+
+    <div class="panel">
+        <h3>3. Star & Affinity Audit</h3>
+        <button id="starBtn" disabled onclick="countStars()">Analyze Stars</button>
+        <div id="star-result" class="data-box">Awaiting color/geometry scan...</div>
+    </div>
+
+    <div class="panel">
+        <h3>4. Find Stats Box</h3>
+        <button id="rectBtn" disabled onclick="findStatsBox()">Find Main Grid</button>
+        <div id="rect-result" class="data-box">Awaiting geometry scan...</div>
+    </div>
+
+    <div class="panel">
+        <h3>5. Full Grid Analysis</h3>
+        <button id="fullScanBtn" disabled onclick="scanFullGrid()">Scan All Total Stats</button>
+        <div id="full-grid-result" class="data-box">Awaiting full grid scan...</div>
+    </div>
+
+    <script>
+        let imgElement = new Image();
+        let canvas = document.getElementById('imageCanvas');
+        let tempCanvas = document.getElementById('tempCanvas');
+        let ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+        function cvReady() {
+            document.getElementById('cv-status').innerText = "[✓] OpenCV.js Online";
+            document.getElementById('cv-status').style.color = "#2ecc71";
+            document.getElementById('scanBtn').disabled = false;
+            document.getElementById('starBtn').disabled = false;
+            document.getElementById('rectBtn').disabled = false; 
+            document.getElementById('fullScanBtn').disabled = false; 
+        }
+
+        document.getElementById('imageLoader').addEventListener('change', function(e) {
+            let reader = new FileReader();
+            reader.onload = function(event) {
+                imgElement.onload = function() {
+                    canvas.width = imgElement.width;
+                    canvas.height = imgElement.height;
+                    ctx.drawImage(imgElement, 0, 0, imgElement.width, imgElement.height);
+                }
+                imgElement.src = event.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        });
+
+        async function scanChampionName() {
+            const statusText = document.getElementById('ocr-result');
+            statusText.innerText = "Scanning top 20%...";
+            const rect = { left: 0, top: 0, width: canvas.width, height: Math.floor(canvas.height * 0.20) };
+            try {
+                const result = await Tesseract.recognize(canvas, 'eng', { rectangle: rect });
+                const rawText = result.data.text;
+                const match = rawText.match(/([a-zA-Z\s\-',]+)\s+Lvl\.\s*([0-9O]+)/i);
+                if (match) {
+                    let cleanName = match[1].replace(/[^a-zA-Z\s\-',]/g, '').trim();
+                    if (cleanName.startsWith('X ')) cleanName = cleanName.substring(2).trim();
+                    if (cleanName.startsWith('l')) cleanName = 'I' + cleanName.substring(1);
+                    cleanName = cleanName.replace(/ lce/g, ' Ice').replace(/1/g, 'I');
+                    let cleanLevel = parseInt(match[2].toString().replace(/O/g, '0'));
+                    statusText.innerHTML = `{\n  "champion": "${cleanName}",\n  "level": ${cleanLevel}\n}`;
+                } else {
+                    statusText.innerText = "Pattern not found.";
+                }
+            } catch (error) { statusText.innerText = "OCR Error."; }
+        }
+
+        function countStars() {
+            const statusText = document.getElementById('star-result');
+            let src = cv.imread(canvas);
+            let rect = new cv.Rect(0, 0, src.cols, Math.floor(src.rows * 0.15));
+            let cropped = src.roi(rect);
+            let hsv = new cv.Mat();
+            cv.cvtColor(cropped, hsv, cv.COLOR_RGBA2RGB);
+            cv.cvtColor(hsv, hsv, cv.COLOR_RGB2HSV);
+            let masks = { purple: new cv.Mat(), red: new cv.Mat(), yellow: new cv.Mat() };
+            let lowP = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [125, 50, 50, 0]);
+            let highP = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [160, 255, 255, 0]);
+            cv.inRange(hsv, lowP, highP, masks.purple);
+            let lowR = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [0, 100, 100, 0]);
+            let highR = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [10, 255, 255, 0]);
+            cv.inRange(hsv, lowR, highR, masks.red);
+            let lowY = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [20, 100, 100, 0]);
+            let highY = new cv.Mat(hsv.rows, hsv.cols, hsv.type(), [40, 255, 255, 0]);
+            cv.inRange(hsv, lowY, highY, masks.yellow);
+            let allBlobs = [];
+            Object.keys(masks).forEach(color => {
+                let contours = new cv.MatVector();
+                let hierarchy = new cv.Mat();
+                cv.findContours(masks[color], contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+                for (let i = 0; i < contours.size(); ++i) {
+                    if (cv.contourArea(contours.get(i)) > 40) {
+                        let bRect = cv.boundingRect(contours.get(i));
+                        allBlobs.push({ color: color, x: bRect.x, width: bRect.width, right: bRect.x + bRect.width });
+                    }
+                }
+                contours.delete(); hierarchy.delete();
+            });
+            allBlobs.sort((a, b) => b.x - a.x);
+            let trueStars = [];
+            let expectedGap = null;
+            if (allBlobs.length > 0) {
+                trueStars.push(allBlobs[0]);
+                for (let i = 1; i < allBlobs.length; i++) {
+                    let currentGap = allBlobs[i-1].x - allBlobs[i].right;
+                    if (expectedGap === null) { expectedGap = currentGap; trueStars.push(allBlobs[i]); }
+                    else { if (currentGap > (expectedGap * 1.5)) break; trueStars.push(allBlobs[i]); }
+                }
+            }
+            let pCount = trueStars.filter(b => b.color === 'purple').length;
+            let rCount = trueStars.filter(b => b.color === 'red').length;
+            let yCount = trueStars.filter(b => b.color === 'yellow').length;
+            statusText.innerHTML = `{\n  "Ascension Level": ${pCount + rCount},\n  "Awakening Level": ${rCount},\n  "Not Fully Ascended": ${yCount > 0}\n}`;
+            src.delete(); cropped.delete(); hsv.delete(); Object.values(masks).forEach(m => m.delete());
+        }
+
+        function findStatsBox() {
+            const statusText = document.getElementById('rect-result');
+            let src = cv.imread(canvas);
+            let gray = new cv.Mat();
+            let thresh = new cv.Mat();
+            let contours = new cv.MatVector();
+            let hierarchy = new cv.Mat();
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            cv.threshold(gray, thresh, 80, 255, cv.THRESH_BINARY);
+            cv.findContours(thresh, contours, hierarchy, cv.RETR_LIST, cv.CHAIN_APPROX_SIMPLE);
+            let mainRect = null;
+            let maxArea = 0;
+            for (let i = 0; i < contours.size(); ++i) {
+                let rect = cv.boundingRect(contours.get(i));
+                let aspectRatio = rect.width / rect.height;
+                if (rect.width > (src.cols * 0.4) && rect.height > (src.rows * 0.2)) {
+                    if (aspectRatio > 1.3 && aspectRatio < 2.2) {
+                        if ((rect.width * rect.height) > maxArea) { maxArea = rect.width * rect.height; mainRect = rect; }
+                    }
+                }
+            }
+            if (mainRect) {
+                let midY = Math.floor(mainRect.y + (mainRect.height / 2));
+                let leftEdge = mainRect.x;
+                let rightEdge = mainRect.x + mainRect.width;
+                for (let x = mainRect.x; x < mainRect.x + 100; x++) { if (thresh.ucharAt(midY, x) > 0) { leftEdge = x; break; } }
+                for (let x = mainRect.x + mainRect.width; x > mainRect.x + mainRect.width - 100; x--) { if (thresh.ucharAt(midY, x) > 0) { rightEdge = x; break; } }
+                mainRect.x = leftEdge; mainRect.width = rightEdge - leftEdge;
+                window.lastFoundRect = mainRect;
+                statusText.innerHTML = `Stats Box Found!`;
+                let p1 = new cv.Point(mainRect.x, mainRect.y), p2 = new cv.Point(mainRect.x + mainRect.width, mainRect.y + mainRect.height);
+                cv.rectangle(src, p1, p2, [0, 255, 0, 255], 3); cv.imshow('imageCanvas', src);
+            }
+            src.delete(); gray.delete(); thresh.delete(); contours.delete(); hierarchy.delete();
+        }
+
+        async function scanFullGrid() {
+            const statusText = document.getElementById('full-grid-result');
+            if (!window.lastFoundRect) return;
+            statusText.innerText = "Scanning...";
+            const main = window.lastFoundRect;
+            const results = {};
+            const rowMap = [
+                { id: "hp", label: "HP", t: 0.2897, b: 0.3602 },
+                { id: "atk", label: "ATK", t: 0.3594, b: 0.4257 },
+                { id: "def", label: "DEF", t: 0.4248, b: 0.4912 },
+                { id: "spd", label: "SPD", t: 0.4901, b: 0.5589 },
+                { id: "crate", label: "C. RATE", t: 0.5577, b: 0.6244 },
+                { id: "cdmg", label: "C. DMG", t: 0.6230, b: 0.6921 },
+                { id: "res", label: "RES", t: 0.6906, b: 0.7598 },
+                { id: "acc", label: "ACC", t: 0.7581, b: 0.8253 },
+                { id: "ignore", label: "IGNORE DEF", t: 0.8235, b: 0.8908 }
+            ];
+            const colL = 0.9123, colR = 0.9950;
+
+            for (let stat of rowMap) {
+                let x = main.x + Math.floor(main.width * colL), y = main.y + Math.floor(main.height * stat.t);
+                let w = Math.floor(main.width * (colR - colL)), h = Math.floor(main.height * (stat.b - stat.t));
+
+                let src = cv.imread(canvas);
+                let roi = src.roi(new cv.Rect(x, y, w, h));
+                let gray = new cv.Mat();
+                cv.cvtColor(roi, gray, cv.COLOR_RGBA2GRAY);
+                cv.threshold(gray, gray, 0, 255, cv.THRESH_BINARY_INV + cv.THRESH_OTSU);
+                
+                // Use temporary hidden canvas to avoid messing up main canvas
+                cv.imshow('tempCanvas', gray);
+
+                try {
+                    const result = await Tesseract.recognize(tempCanvas, 'eng', { tessedit_char_whitelist: '0123456789' });
+                    results[stat.label] = result.data.text.replace(/[^0-9]/g, '') || "0";
+                } catch (e) { results[stat.label] = "Error"; }
+
+                src.delete(); roi.delete(); gray.delete();
+            }
+            ctx.drawImage(imgElement, 0, 0, canvas.width, canvas.height);
+            statusText.innerHTML = `<strong>Final Results:</strong><br>${JSON.stringify(results, null, 2)}`;
+        }
+    </script>
+</body>
+</html>

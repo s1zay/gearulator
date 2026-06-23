@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raid OCR Data Tester</title>
+    <style>
+        body {
+            background-color: #1a1a1a;
+            color: #eaeaea;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .audit-container {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        h2 { margin-top: 0; color: #ffc107; text-align: center; }
+
+        /* File Upload Styling for Testing */
+        .upload-section {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #444;
+        }
+
+        /* Champion Header Info */
+        .champ-header {
+            display: none; 
+            background: #111;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff0000; /* Mocking Magic Affinity red */
+        }
+        
+        .champ-header.active {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .champ-title-block {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        .champ-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .champ-level {
+            color: #aaa;
+            font-size: 0.9em;
+        }
+
+        /* Star Styling */
+        .champ-stars {
+            letter-spacing: 2px;
+            font-size: 1.2em;
+        }
+        .star-red { color: #ff3333; } /* Awakening */
+        .star-purple { color: #b026ff; } /* Mythical Ascension */
+        .star-gold { color: #ffdf00; } /* Standard Ascension */
+        .star-empty { color: #555; } /* Unascended */
+
+        .champ-context {
+            text-align: right;
+            font-size: 0.85em;
+            color: #888;
+        }
+
+        .champ-context span {
+            display: block;
+            margin-bottom: 4px;
+            color: #00ffff;
+        }
+
+        /* The Data Table */
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85em;
+            text-align: center;
+        }
+
+        .audit-table th, .audit-table td {
+            padding: 10px 5px;
+            border-bottom: 1px solid #444;
+        }
+
+        .audit-table th {
+            background-color: #111;
+            color: #aaa;
+            font-weight: normal;
+            font-size: 0.8em;
+        }
+
+        .audit-table td:first-child {
+            text-align: left;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .col-total {
+            background-color: #333;
+            color: #ffc107;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .btn-test {
+            background: #ffc107;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .btn-test:hover { background: #e0a800; }
+
+        .stat-pct { color: #aaa; }
+
+    </style>
+</head>
+<body>
+
+    <div class="audit-container">
+        <h2>OCR Data Verification</h2>
+        
+        <div class="upload-section">
+            <button class="btn-test" onclick="simulateImageScrape()">Simulate Upload & Scrape</button>
+        </div>
+
+        <div class="champ-header" id="champHeader">
+            <div class="champ-title-block">
+                <div class="champ-name" id="hName">Champion Name</div>
+                <div class="champ-level" id="hLevel">Lvl. 0</div>
+                <div class="champ-stars" id="hStars">★★★★★★</div>
+            </div>
+            <div class="champ-context">
+                <span id="hForm">Base Form</span>
+                <div id="hArea">Showing Area Bonuses for: No Area Selected</div>
+            </div>
+        </div>
+
+        <table class="audit-table" id="dataTable">
+            <thead>
+                <tr>
+                    <th>Stat</th>
+                    <th>Basic Stats</th>
+                    <th>Artifacts</th>
+                    <th>Affinity<br>Bonuses</th>
+                    <th>Classic<br>Arena</th>
+                    <th>Masteries</th>
+                    <th>Faction<br>Guardians</th>
+                    <th>Empowerment</th>
+                    <th>Blessing</th>
+                    <th>Relic</th>
+                    <th>Area<br>Bonuses</th>
+                    <th class="col-total">Total</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="12" style="text-align: center; padding: 20px; color: #777;">Upload an image to populate data</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const mockScrapedData = {
+            champion: "Embrys the Anomaly",
+            level: 60,
+            awakeningStars: 1, 
+            ascensionStars: 6, 
+            rarity: "mythical", 
+            form: "Base Form",
+            areaContext: "No Area Selected",
+            stats: {
+                HP:  { base: 22140, art: 78279, affin: 1771, arena: 4871, mast: 0, fg: 0, emp: 0, bless: 10500, relic: 3947, area: 0, total: 121508, isPct: false },
+                ATK: { base: 1101, art: 1268, affin: 88, arena: 242, mast: 0, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 2699, isPct: false },
+                DEF: { base: 1277, art: 1639, affin: 102, arena: 281, mast: 75, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 3374, isPct: false },
+                SPD: { base: 111, art: 173, affin: 0, arena: 0, mast: 0, fg: 0, emp: 0, bless: 0, relic: 6, area: 0, total: 290, isPct: false },
+                CR:  { base: 15, art: 40, affin: 0, arena: 0, mast: 5, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 60, isPct: true },
+                CD:  { base: 50, art: 40, affin: 10, arena: 0, mast: 10, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 110, isPct: true },
+                RES: { base: 30, art: 72, affin: 80, arena: 0, mast: 0, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 182, isPct: false },
+                ACC: { base: 20, art: 86, affin: 80, arena: 0, mast: 0, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 186, isPct: false },
+                IGN: { base: 0, art: 0, affin: 0, arena: 0, mast: 0, fg: 0, emp: 0, bless: 0, relic: 0, area: 0, total: 0, isPct: true }
+            }
+        };
+
+        function renderTable(data) {
+            // Populate Header Info
+            document.getElementById('champHeader').classList.add('active');
+            document.getElementById('hName').innerText = data.champion;
+            document.getElementById('hLevel').innerText = `Lvl. ${data.level}`;
+            document.getElementById('hForm').innerText = data.form || '';
+            document.getElementById('hArea').innerText = `Showing Area Bonuses for: ${data.areaContext}`;
+
+            // Generate Stars dynamically by concurrent classes
+            let starsHtml = '';
+            const starsContainer = document.getElementById('hStars');
+            
+            // Draw all 6 stars individually, concurrent classes
+            for (let i = 0; i < 6; i++) {
+                if ((i + 1) <= data.awakeningStars) {
+                    starsHtml += '<span class="star-red">★</span>'; 
+                } else if ((i + 1) <= data.ascensionStars) {
+                    if (data.rarity === 'mythical') {
+                        starsHtml += '<span class="star-purple">★</span>'; 
+                    } else {
+                        // Normally this would just be gold for standard ascension if not mythical
+                        starsHtml += '<span class="star-purple">★</span>'; 
+                    }
+                } else {
+                    starsHtml += '<span class="star-gold">★</span>'; 
+                }
+            }
+            starsContainer.innerHTML = starsHtml;
+
+            // Populate Grid and Force Zeros to show
+            const tbody = document.getElementById('tableBody');
+            let html = '';
+
+            const statKeys = ['HP', 'ATK', 'DEF', 'SPD', 'CR', 'CD', 'RES', 'ACC', 'IGN'];
+            const labels = ['HP', 'ATK', 'DEF', 'SPD', 'C. RATE', 'C. DMG', 'RES', 'ACC', 'Ignore DEF'];
+
+            statKeys.forEach((key, index) => {
+                const row = data.stats[key];
+                
+                // Formats numbers with commas and adds % if needed
+                const fmt = (val) => {
+                    const valFmt = val.toLocaleString();
+                    const valStr = (val === 0) ? `<span style="color:#444">0</span>` : valFmt; 
+
+                    return `${valStr}${row.isPct ? '<span class="stat-pct">%</span>' : ''}`;
+                };
+
+                html += `
+                    <tr>
+                        <td>${labels[index]}</td>
+                        <td>${fmt(row.base)}</td>
+                        <td style="color:#4caf50;">${fmt(row.art)}</td>
+                        <td>${fmt(row.affin)}</td>
+                        <td>${fmt(row.arena)}</td>
+                        <td>${fmt(row.mast)}</td>
+                        <td>${fmt(row.fg)}</td>
+                        <td>${fmt(row.emp)}</td>
+                        <td>${fmt(row.bless)}</td>
+                        <td>${fmt(row.relic)}</td>
+                        <td>${fmt(row.area)}</td>
+                        <td class="col-total">${fmt(row.total)}</td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function simulateImageScrape() {
+            renderTable(mockScrapedData);
+        }
+    </script>
+</body>
+</html>

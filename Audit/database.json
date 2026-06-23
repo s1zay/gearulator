@@ -1,0 +1,55 @@
+{
+  "champions": [
+    {
+      "name": "Gnut",
+      "rarity": "Legendary",
+      "faction": "Dwarves",
+      "affinity": "Magic",
+      "role": "DEF",
+      "damageScaling": ["DEF", "EnemyMaxHP"]
+    },
+    {
+      "name": "Deacon Armstrong",
+      "rarity": "Epic",
+      "faction": "Sacred Order",
+      "affinity": "Magic",
+      "role": "Support",
+      "damageScaling": ["ATK"]
+    },
+    {
+      "name": "Coldheart",
+      "rarity": "Rare",
+      "faction": "Dark Elves",
+      "affinity": "Void",
+      "role": "Attack",
+      "damageScaling": ["ATK", "EnemyMaxHP"]
+    }
+  ],
+  "areaBenchmarks": [
+    { "area": "Potion Keep", "stage": "20", "maxSpd": 130, "recAcc": 195, "recRes": 305 },
+    { "area": "Faction Wars", "stage": "Normal 21", "maxSpd": 104, "recAcc": 245, "recRes": 305 },
+    { "area": "Faction Wars", "stage": "Hard 21", "maxSpd": 325, "recAcc": 465, "recRes": 630 },
+    { "area": "Ice Golem's Peak", "stage": "Normal 25", "maxSpd": 105, "recAcc": 225, "recRes": 305 },
+    { "area": "Ice Golem's Peak", "stage": "Hard 10", "maxSpd": 240, "recAcc": 345, "recRes": 435 },
+    { "area": "Fire Knight's Castle", "stage": "Normal 25", "maxSpd": 100, "recAcc": 225, "recRes": 305 },
+    { "area": "Fire Knight's Castle", "stage": "Hard 10", "maxSpd": 250, "recAcc": 345, "recRes": 435 },
+    { "area": "Dragon's Lair", "stage": "Normal 25", "maxSpd": 101, "recAcc": 225, "recRes": 305 },
+    { "area": "Dragon's Lair", "stage": "Hard 10", "maxSpd": 250, "recAcc": 345, "recRes": 435 },
+    { "area": "Spider's Den", "stage": "Normal 25", "maxSpd": 150, "recAcc": 225, "recRes": 305 },
+    { "area": "Spider's Den", "stage": "Hard 10", "maxSpd": 245, "recAcc": 345, "recRes": 435 },
+    { "area": "Doom Tower", "stage": "Normal Fae 120", "maxSpd": 190, "recAcc": 205, "recRes": 205 },
+    { "area": "Doom Tower", "stage": "Hard Fae 120", "maxSpd": 250, "recAcc": 355, "recRes": 355 },
+    { "area": "Iron Twins Fortress", "stage": "10", "maxSpd": 200, "recAcc": 225, "recRes": 305 },
+    { "area": "Iron Twins Fortress", "stage": "15", "maxSpd": 250, "recAcc": 375, "recRes": 505 },
+    { "area": "Demon Lord Battles", "stage": "Hard", "maxSpd": 140, "recAcc": 100, "recRes": 155 },
+    { "area": "Demon Lord Battles", "stage": "Ultra-Nightmare", "maxSpd": 190, "recAcc": 250, "recRes": 330 },
+    { "area": "Hydra Battles", "stage": "Hard", "maxSpd": 220, "recAcc": 215, "recRes": 305 },
+    { "area": "Hydra Battles", "stage": "Nightmare", "maxSpd": 250, "recAcc": 360, "recRes: 455 },
+    { "area": "Sand Devil's Necropolis", "stage": "15", "maxSpd": 220, "recAcc": 320, "recRes": 365 },
+    { "area": "Sand Devil's Necropolis", "stage": "25", "maxSpd": 270, "recAcc": 495, "recRes": 655 },
+    { "area": "Phantom Shogun's Grove", "stage": "15", "maxSpd": 245, "recAcc": 250, "recRes": 265 },
+    { "area": "Phantom Shogun's Grove", "stage": "25", "maxSpd": 350, "recAcc": 425, "recRes": 555 },
+    { "area": "Cursed City", "stage": "Normal Amius", "maxSpd": 200, "recAcc": 375, "recRes": 555 },
+    { "area": "Cursed City", "stage": "Hard Amius", "maxSpd": 250, "recAcc": 475, "recRes": 655 }
+  ]
+}
